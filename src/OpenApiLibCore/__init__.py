@@ -20,7 +20,12 @@ from OpenApiLibCore.dto_base import (
     Relation,
     UniquePropertyValueConstraint,
 )
-from OpenApiLibCore.openapi_libcore import OpenApiLibCore
+from OpenApiLibCore.openapi_libcore import (
+    OpenApiLibCore,
+    RequestData,
+    RequestValues,
+    resolve_schema,
+)
 from OpenApiLibCore.value_utils import IGNORE
 
 try:
