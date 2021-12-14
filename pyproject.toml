@@ -1,7 +1,7 @@
 [tool.poetry]
 name="robotframework-openapi-libcore"
-version = "0.0.1"
-description = "A library to facilitate library development for OpenAPI / Swagger APIs."
+version = "1.0.0-alpha.0"
+description = "A Robot Framework library to facilitate library development for OpenAPI / Swagger APIs."
 license = "Apache-2.0"
 authors = ["Robin Mackaij"]
 maintainers = ["Robin Mackaij"]
@@ -64,8 +64,8 @@ module = [
     "prance.*",
     "robot.*",
     "openapi_core.*",
-    "robotlibcore",
     "invoke",
+    "uvicorn",
 ]
 ignore_missing_imports = true
 
