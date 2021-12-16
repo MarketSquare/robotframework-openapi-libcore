@@ -227,6 +227,15 @@ def post_employee(employee: Employee) -> EmployeeDetails:
 
 
 @app.get(
+    "/employees",
+    status_code=200,
+    response_model=List[EmployeeDetails],
+)
+def get_employees() -> List[EmployeeDetails]:
+    return list(EMPLOYEES.values())
+
+
+@app.get(
     "/employees/{employee_id}",
     status_code=200,
     response_model=EmployeeDetails,
