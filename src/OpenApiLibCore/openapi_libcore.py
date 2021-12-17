@@ -148,12 +148,9 @@ class RequestData:
         return {k: v for k, v in self.headers.items() if k in required_parameters}
 
 
-@library
+@library(scope="TEST SUITE", doc_format="ROBOT")
 class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
     """Main class providing the keywords and core logic to interact with an OpenAPI."""
-
-    ROBOT_LIBRARY_DOC_FORMAT = "ROBOT"
-    ROBOT_LIBRARY_SCOPE = "TEST SUITE"
 
     def __init__(  # pylint: disable=too-many-arguments, too-many-locals
         self,
@@ -310,6 +307,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             valid_id = response_data["id"]
         return valid_id
 
+    # FIXME: get_ids_for_url is a more proper name, but breaking change
     @keyword
     def get_ids_for_endpoint(self, url: str) -> List[str]:
         """
@@ -421,7 +419,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         return parameters, params, headers
 
     @staticmethod
-    def get_content_schema(body_spec: Dict[str, Any]):
+    def get_content_schema(body_spec: Dict[str, Any]) -> Dict[str, Any]:
         """Get the content schema from the requestBody spec."""
         # Content should be a single key/value entry, so use tuple assignment
         (content_type,) = body_spec["content"].keys()
