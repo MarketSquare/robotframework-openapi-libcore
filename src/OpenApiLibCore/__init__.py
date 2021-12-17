@@ -26,6 +26,7 @@ from OpenApiLibCore.openapi_libcore import (
     RequestValues,
     resolve_schema,
 )
+from OpenApiLibCore.dto_utils import DefaultDto
 from OpenApiLibCore.value_utils import IGNORE
 
 try:
