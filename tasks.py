@@ -97,6 +97,7 @@ def libspec(context):
 def readme(context):
     #     front_matter = (
     # r"""---
+    # [![CI](https://github.com/MarketSquare/robotframework-openapi-libcore/actions/workflows/ci.yml/badge.svg)](https://github.com/MarketSquare/robotframework-openapi-libcore/actions/workflows/ci.yml
     # ![[Unit-tests](https://img.shields.io/github/workflow/status/MarketSquare/robotframework-openapi-libcore/Unit%20tests/main)](https://github.com/MarketSquare/robotframework-openapi-libcore/actions?query=workflow%3A%22Unit+tests%22 "GitHub Workflow Unit Tests Status")
     # ![Codecov](https://img.shields.io/codecov/c/github/MarketSquare/robotframework-openapi-libcore/main "Code coverage on master branch")
     # ![PyPI](https://img.shields.io/pypi/v/robotframework-openapi-libcore?label=version "PyPI package version")
