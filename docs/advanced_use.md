@@ -7,14 +7,14 @@ The value for a certain property may have to be unique within a certain scope.
 Perhaps an endpoint path contains parameters that must match values that are defined outside the API itself.
 
 These types of relations and limitations cannot be described / modeled within the openapi document.
-To support automatic validation of API endpoints where such relations apply, OpenApiDriver supports the usage of a custom mappings file.
+To support automatic validation of API endpoints where such relations apply, OpenApiLibCore supports the usage of a custom mappings file.
 
 ## Taking a custom mappings file into use
-To take a custom mappings file into use, the absolute path to it has to be passed to OpenApiDriver as the `mappings_path` parameter:
+To take a custom mappings file into use, the absolute path to it has to be passed to OpenApiLibCore as the `mappings_path` parameter:
 
 ```robot framework
 *** Settings ***
-Library             OpenApiDriver
+Library             OpenApiLibCore
 ...                 source=http://localhost:8000/openapi.json
 ...                 origin=http://localhost:8000
 ...                 mappings_path=${root}/tests/custom_user_mappings.py
@@ -26,11 +26,11 @@ Library             OpenApiDriver
 
 ## The custom mappings file
 Just like custom Robot Framework libraries, the mappings file has to be implemented in Python.
-Since this Python file is imported by the OpenApiDriver, it has to follow a fixed format (more technically, implement a certain interface).
+Since this Python file is imported by the OpenApiLibCore, it has to follow a fixed format (more technically, implement a certain interface).
 The bare minimum implementation of a mappings.py file looks like this:
 
 ```python
-from OpenApiDriver import (
+from OpenApiLibCore import (
     IGNORE,
     Dto,
     IdDependency,
@@ -64,7 +64,7 @@ More on this later.
 3. The `DTO_MAPPING` "constant" definition / assignment.
 
 ## The DTO_MAPPING
-When a custom mappings file is used, the OpenApiDriver will attempt to import it and then import `DTO_MAPPING` from it.
+When a custom mappings file is used, the OpenApiLibCore will attempt to import it and then import `DTO_MAPPING` from it.
 For this reason, the exact same name must be used in a custom mappings file (capitilization matters).
 
 The `DTO_MAPPING` is a dictionary with a tuple as its key and a mappings Dto as its value.
@@ -196,7 +196,7 @@ Note how this example reuses the `EmployeeDto` to model the uniqueness constrain
 ### `PropertyValueConstraint`
 > *Use one of these values for this property*
 
-The OpenApiDriver uses the `type` information in the openapi document to generate random data of the correct type to perform the operations that need it.
+The OpenApiLibCore uses the `type` information in the openapi document to generate random data of the correct type to perform the operations that need it.
 While this works in many situations (e.g. a random `string` for a `name`), there can be additional restrictions to a value that cannot be specified in an openapi document.
 
 In our example, the `date_of_birth` must be a string in a specific format, e.g. 1995-03-27.
@@ -254,9 +254,9 @@ So now if an incorrectly formatted date is send a 422 response is expected, but 
 ### `PathPropertiesConstraint`
 > *Just use this for the `path`*
 
-To be able to automatically perform endpoint validations, the OpenApiDriver has to construct the `url` for the resource from the `path` as found in the openapi document.
+To be able to automatically perform endpoint validations, the OpenApiLibCore has to construct the `url` for the resource from the `path` as found in the openapi document.
 Often, such a `path` contains a reference to a resource id, e.g. `/employees/${employee_id}`.
-When such an `id` is needed, the OpenApiDriver tries to obtain a valid `id` by taking these steps:
+When such an `id` is needed, the OpenApiLibCore tries to obtain a valid `id` by taking these steps:
 
 1. Attempt a `post` on the "parent endpoint" and extract the `id` from the response.
 In our example: perform a `post` request on the `/employees` endpoint and get the `id` from the response.
@@ -268,7 +268,7 @@ This mechanism relies on the standard REST structure and patterns.
 Unfortunately, this structure / pattern does not apply to every endpoint, not every path parameter refers to a resource id.
 Imagine we want to extend the API from our example with an endpoint that returns all the Employees that have their birthday at a given date:
 `/birthdays/${month}/${date}`.
-It should be clear that the OpenApiDriver won't be able to acquire a valid `month` and `date`. The `PathPropertiesConstraint` can be used in this case:
+It should be clear that the OpenApiLibCore won't be able to acquire a valid `month` and `date`. The `PathPropertiesConstraint` can be used in this case:
 
 ```python
 class BirthdaysDto(Dto):
@@ -296,7 +296,7 @@ To illustrate this, let's imagine an API where the energy label for a building c
 Some addresses however have an address extension, e.g. 1234AB 42 <sup>2.C</sup>.
 The extension may not be limited to a fixed pattern / range and if an address has an extension, in many cases the address without an extension part is invalid.
 
-To prevent OpenApiDriver from generating invalid combinations of path and query parameters in this type of endpoint, the `IGNORE` special value can be used to ensure the related query parameter is never send in a request.
+To prevent OpenApiLibCore from generating invalid combinations of path and query parameters in this type of endpoint, the `IGNORE` special value can be used to ensure the related query parameter is never send in a request.
 
 ```python
 class EnergyLabelDto(Dto):
@@ -332,4 +332,4 @@ This method works mostly the same as the `get_relations()` method but applies to
 
 An additional import to support type annotations is also available: `Relation`.
 A fully typed example can be found
-[here](https://github.com/MarketSquare/robotframework-openapidriver/blob/main/tests/user_implemented/custom_user_mappings.py).
+[here](https://github.com/MarketSquare/robotframework-openapi-libcore/blob/main/tests/user_implemented/custom_user_mappings.py).

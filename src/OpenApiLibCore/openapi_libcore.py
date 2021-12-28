@@ -231,7 +231,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
 
         > Note: if valid ids cannot be retrieved within the scope of the API, the
         `PathPropertiesConstraint` Relation can be used. More information can be found
-        [here](https://marketsquare.github.io/robotframework-openapidriver/advanced_use.html).
+        [here](https://marketsquare.github.io/robotframework-openapi-libcore/advanced_use.html).
         """
         method = method.lower()
         try:
@@ -476,7 +476,9 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             spec_endpoint_parts = spec_endpoint.split("/")
             if match_parts(endpoint_parts, spec_endpoint_parts):
                 return spec_endpoint
-        raise ValueError(f"{endpoint} not found in paths section of the OpenAPI document.")
+        raise ValueError(
+            f"{endpoint} not found in paths section of the OpenAPI document."
+        )
 
     @staticmethod
     def get_parameter_data(
@@ -507,7 +509,10 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
 
     @keyword
     def get_json_data_for_dto_class(
-        self, schema: Dict[str, Any], dto_class: Union[Dto, Type[Dto]], operation_id: str
+        self,
+        schema: Dict[str, Any],
+        dto_class: Union[Dto, Type[Dto]],
+        operation_id: str,
     ) -> Optional[Dict[str, Any]]:
         """
         Generate a valid (json-compatible) dict for all the `dto_class` properties.
@@ -655,7 +660,11 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         resource_relation = choice(data_relations)
         if isinstance(resource_relation, UniquePropertyValueConstraint):
             json_data = run_keyword(
-                "get_json_data_with_conflict", url, method, request_data.dto, status_code
+                "get_json_data_with_conflict",
+                url,
+                method,
+                request_data.dto,
+                status_code,
             )
         elif isinstance(resource_relation, IdReference):
             run_keyword("ensure_in_use", url, resource_relation)
@@ -705,7 +714,11 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 )
             parameter_to_invalidate = choice(tuple(parameter_names))
             try:
-                [parameter_data] = [data for data in request_data.parameters if data["name"] == parameter_to_invalidate]
+                [parameter_data] = [
+                    data
+                    for data in request_data.parameters
+                    if data["name"] == parameter_to_invalidate
+                ]
             except Exception:
                 raise ValueError(
                     f"{parameter_to_invalidate} not found in provided parameters."
@@ -717,7 +730,9 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             )
             try:
                 [parameter_data] = [
-                    d for d in request_data.parameters if d["name"] == parameter_to_invalidate
+                    d
+                    for d in request_data.parameters
+                    if d["name"] == parameter_to_invalidate
                 ]
             except Exception:
                 raise ValueError(
@@ -757,7 +772,9 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         endpoint_parts = endpoint.split("/")
         parameterized_endpoint = self.get_parametrized_endpoint(endpoint=endpoint)
         parameterized_endpoint_parts = parameterized_endpoint.split("/")
-        for part, param_part in zip(reversed(endpoint_parts), reversed(parameterized_endpoint_parts)):
+        for part, param_part in zip(
+            reversed(endpoint_parts), reversed(parameterized_endpoint_parts)
+        ):
             if param_part.endswith("}"):
                 resource_id = part
                 break
