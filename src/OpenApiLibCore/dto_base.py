@@ -130,10 +130,13 @@ class Dto(ABC):
             if r.error_code == status_code
             or getattr(r, "invalid_value_error_code", None) == status_code
         ]
+        property_names = [r.property_name for r in relations]
         if status_code == invalid_property_default_code:
-            property_names = list(properties.keys())
-        else:
-            property_names = [r.property_name for r in relations]
+            property_names += list(properties.keys())
+        if not property_names:
+            raise ValueError(
+                f"No property can be invalidated to cause status_code {status_code}"
+            )
         # shuffle the property_names so different properties on the Dto are invalidated
         # when rerunning the test
         shuffle(property_names)
@@ -171,7 +174,7 @@ class Dto(ABC):
                 return properties
 
             values_from_constraint = [
-                r.values
+                r.values[0]
                 for r in relations
                 if isinstance(r, PropertyValueConstraint)
                 and r.property_name == property_name
