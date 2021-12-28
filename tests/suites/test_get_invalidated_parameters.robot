@@ -4,7 +4,7 @@ Library         OpenApiLibCore
 ...             origin=${origin}
 ...             base_path=${EMPTY}
 ...             mappings_path=${root}/tests/user_implemented/custom_user_mappings.py
-Library    ../../.venv/lib/site-packages/robot/libraries/String.py
+Library         ../../.venv/lib/site-packages/robot/libraries/String.py
 Variables       ${root}/tests/variables.py
 
 *** Variables ***

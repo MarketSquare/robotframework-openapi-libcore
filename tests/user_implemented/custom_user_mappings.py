@@ -36,7 +36,7 @@ class WagegroupDto(Dto):
             PropertyValueConstraint(
                 property_name="hourly_rate",
                 values=[80.50, 90.95, 99.99],
-                error_code=400
+                error_code=400,
             ),
         ]
         return relations

@@ -46,11 +46,11 @@ Test Get Request Data For Endpoint Without RequestBody But With DtoClass
     Should Be Equal    ${request_data.headers}    ${dict}
 
 # Test Get Request Data For Endpoint With RequestBody With Only Ignored Properties
-#     ${request_data}=    Get Request Data    endpoint=/wagegroups/{wagegroup_id}    method=delete
-#     ${dict}=    Create Dictionary
-#     ${list}=    Create List
-#     Should Be Equal As Strings    ${request_data.dto}    delete_wagegroup_wagegroups__wagegroup_id__delete()
-#     Should Be Equal    ${request_data.dto_schema}    ${dict}
-#     Should Not Be Empty    ${request_data.parameters}
-#     Should Be Equal    ${request_data.params}    ${dict}
-#     Should Be Equal    ${request_data.headers}    ${dict}
+#    ${request_data}=    Get Request Data    endpoint=/wagegroups/{wagegroup_id}    method=delete
+#    ${dict}=    Create Dictionary
+#    ${list}=    Create List
+#    Should Be Equal As Strings    ${request_data.dto}    delete_wagegroup_wagegroups__wagegroup_id__delete()
+#    Should Be Equal    ${request_data.dto_schema}    ${dict}
+#    Should Not Be Empty    ${request_data.parameters}
+#    Should Be Equal    ${request_data.params}    ${dict}
+#    Should Be Equal    ${request_data.headers}    ${dict}

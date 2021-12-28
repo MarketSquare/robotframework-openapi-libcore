@@ -41,13 +41,13 @@ Test Get Json Data With Conflict For Put Request
     Should Be Equal As Integers    ${response.status_code}    418
 
 # Test Get Json Data With Conflict For Patch Request
-#     ${url}=    Get Valid Url    endpoint=/wagegroups/{wagegroup_id}    method=put
-#     ${request_data}=    Get Request Data    endpoint=/wagegroups/{wagegroup_id}    method=put
-#     ${invalid_json}=    Get Json Data With Conflict
-#     ...    url=${url}
-#     ...    method=put
-#     ...    dto=${request_data.dto}
-#     ...    conflict_status_code=418
-#     ${response}=    Authorized Request
-#     ...    url=${url}    method=put    json_data=${invalid_json}
-#     Should Be Equal As Integers    ${response.status_code}    418
+#    ${url}=    Get Valid Url    endpoint=/wagegroups/{wagegroup_id}    method=put
+#    ${request_data}=    Get Request Data    endpoint=/wagegroups/{wagegroup_id}    method=put
+#    ${invalid_json}=    Get Json Data With Conflict
+#    ...    url=${url}
+#    ...    method=put
+#    ...    dto=${request_data.dto}
+#    ...    conflict_status_code=418
+#    ${response}=    Authorized Request
+#    ...    url=${url}    method=put    json_data=${invalid_json}
+#    Should Be Equal As Integers    ${response.status_code}    418

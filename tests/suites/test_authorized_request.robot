@@ -15,13 +15,13 @@ Test Authorized Request Without Authorization
     Should Be Equal As Integers    ${response.status_code}    200
 
 # Test Authorized Request With Username And Password
-#     ${response}=    Authorized Request    url=${origin}/    method=get
-#     Should Be Equal As Integers    ${response.status_code}    200
+#    ${response}=    Authorized Request    url=${origin}/    method=get
+#    Should Be Equal As Integers    ${response.status_code}    200
 
 # Test Authorized Request With Requests Auth Object
-#     ${response}=    Authorized Request    url=${origin}/    method=get
-#     Should Be Equal As Integers    ${response.status_code}    200
+#    ${response}=    Authorized Request    url=${origin}/    method=get
+#    Should Be Equal As Integers    ${response.status_code}    200
 
 # Test Authorized Request With Authorization Token
-#     ${response}=    Authorized Request    url=${origin}/    method=get
-#     Should Be Equal As Integers    ${response.status_code}    200
+#    ${response}=    Authorized Request    url=${origin}/    method=get
+#    Should Be Equal As Integers    ${response.status_code}    200

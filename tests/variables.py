@@ -1,15 +1,15 @@
 from typing import List
 
 from OpenApiLibCore import (
+    IGNORE,
+    DefaultDto,
+    Dto,
     IdDependency,
     IdReference,
-    DefaultDto,
     PathPropertiesConstraint,
-    Dto,
+    PropertyValueConstraint,
     Relation,
     UniquePropertyValueConstraint,
-    PropertyValueConstraint,
-    IGNORE,
 )
 
 

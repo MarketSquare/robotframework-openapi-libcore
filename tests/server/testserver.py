@@ -7,7 +7,7 @@ import uvicorn
 from fastapi import FastAPI, Header, HTTPException, Path, Query, Request, Response
 from pydantic import BaseModel, confloat, conint, constr
 
-API_KEY = "OpenApiDriver"
+API_KEY = "OpenApiLibCore"
 API_KEY_NAME = "api_key"
 
 
@@ -117,7 +117,8 @@ ENERGY_LABELS: Dict[str, Dict[int, Dict[str, EnergyLabel]]] = {
 }
 EVENTS: List[Event] = [
     Event(message=Message(message="Hello?"), details=[Detail(detail="First post")]),
-    Event(message=Message(message="First!"), details=[Detail(detail="Second post")])]
+    Event(message=Message(message="First!"), details=[Detail(detail="Second post")]),
+]
 
 
 @app.get("/", status_code=200, response_model=Message)
@@ -186,7 +187,9 @@ def post_wagegroup(wagegroup: WageGroup) -> WageGroup:
     if wagegroup.id in WAGE_GROUPS.keys():
         raise HTTPException(status_code=418, detail="Wage group already exists.")
     if wagegroup.overtime_percentage != DEPRECATED:
-        raise HTTPException(status_code=422, detail="Overtime percentage is deprecated.")
+        raise HTTPException(
+            status_code=422, detail="Overtime percentage is deprecated."
+        )
     wagegroup.overtime_percentage = None
     WAGE_GROUPS[wagegroup.id] = wagegroup
     return wagegroup
@@ -216,7 +219,9 @@ def put_wagegroup(wagegroup_id: str, wagegroup: WageGroup) -> WageGroup:
     if wagegroup.id in WAGE_GROUPS.keys():
         raise HTTPException(status_code=418, detail="Wage group already exists.")
     if wagegroup.overtime_percentage != DEPRECATED:
-        raise HTTPException(status_code=422, detail="Overtime percentage is deprecated.")
+        raise HTTPException(
+            status_code=422, detail="Overtime percentage is deprecated."
+        )
     wagegroup.overtime_percentage = None
     WAGE_GROUPS[wagegroup.id] = wagegroup
     return wagegroup

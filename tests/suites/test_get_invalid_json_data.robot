@@ -4,7 +4,7 @@ Library         OpenApiLibCore
 ...             origin=${origin}
 ...             base_path=${EMPTY}
 ...             mappings_path=${root}/tests/user_implemented/custom_user_mappings.py
-Library    ../../.venv/lib/site-packages/robot/libraries/OperatingSystem.py
+Library         ../../.venv/lib/site-packages/robot/libraries/OperatingSystem.py
 Variables       ${root}/tests/variables.py
 
 *** Variables ***
@@ -67,7 +67,7 @@ Test Get Invalid Json Data For IdReference
     Should Be Equal As Integers    ${response.status_code}    406
 
 Test Get Invalid Json Data For IdDependency
-    ${url}=    Get Valid Url    endpoint=/employees   method=post
+    ${url}=    Get Valid Url    endpoint=/employees    method=post
     ${request_data}=    Get Request Data    endpoint=/employees    method=post
     ${invalid_json}=    Get Invalid Json Data
     ...    url=${url}
@@ -88,5 +88,5 @@ Test Get Invalid Json Data For Dto With Other Relations
     ...    request_data=${request_data}
     Should Not Be Equal    ${invalid_json}    ${request_data.dto}
     ${response}=    Authorized Request
-    ...    url=${origin}/employees   method=post    json_data=${invalid_json}
+    ...    url=${origin}/employees    method=post    json_data=${invalid_json}
     Should Be Equal As Integers    ${response.status_code}    403

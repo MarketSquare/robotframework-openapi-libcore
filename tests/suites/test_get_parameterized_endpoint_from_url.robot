@@ -25,5 +25,5 @@ Test Get Parameterized Endpoint From Url With Single Id
     Should Be Equal    ${endpoint}    /employees/{employee_id}
 
 # Test Get Parameterized Endpoint From Url With Multiple Ids
-#     ${url}=    Get Valid Url    endpoint=/events/    method=get
-#     Get Parameterized Endpoint From Url    url=${url}
+#    ${url}=    Get Valid Url    endpoint=/events/    method=get
+#    Get Parameterized Endpoint From Url    url=${url}

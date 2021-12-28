@@ -25,7 +25,7 @@ Test Has Optional Params
     Should Be Equal    ${request_data.has_optional_params}    ${TRUE}
 
 Test Has Optional Headers
-    ${request_data}=    Get Request Data    endpoint=/employees   method=get
+    ${request_data}=    Get Request Data    endpoint=/employees    method=get
     Should Be Equal    ${request_data.has_optional_headers}    ${FALSE}
 
     ${request_data}=    Get Request Data    endpoint=/    method=get

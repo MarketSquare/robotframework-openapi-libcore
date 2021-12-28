@@ -6,14 +6,14 @@ Library         OpenApiLibCore
 Variables       ${root}/tests/variables.py
 
 *** Variables ***
-${origin}=      http://localhost:8000
+${origin}       http://localhost:8000
 
 *** Test Cases ***
 Test Get Request Data For Schema With allOf
     ${request_data}=    Get Request Data    endpoint=/hypermedia    method=post
     ${dict}=    Create Dictionary
     ${list}=    Create List
-    ${list_of_dict}    Create List    ${dict}
+    ${list_of_dict}=    Create List    ${dict}
     Length Should Be    ${request_data.dto.isan}    32
     Length Should Be    ${request_data.dto.title}    32
     Length Should Be    ${request_data.dto.published}    32

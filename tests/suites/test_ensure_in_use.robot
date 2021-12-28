@@ -15,8 +15,8 @@ Test Ensure In Use With Single Id In Url
     Ensure In Use    url=${url}    resource_relation=${ID_REFERENCE}
 
 # Test Ensure In Use With Multiple Ids In Url
-#     ${url}=    Get Valid Url    endpoint=/wagegroups/{wagegroup_id}    method=get
-#     Ensure In Use    url=${url}    resource_relation=${ID_REFERENCE}
+#    ${url}=    Get Valid Url    endpoint=/wagegroups/{wagegroup_id}    method=get
+#    Ensure In Use    url=${url}    resource_relation=${ID_REFERENCE}
 
 Test Ensure In Use Raises When No Id In Url
     ${url}=    Get Valid Url    endpoint=/wagegroups    method=post
