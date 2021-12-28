@@ -23,6 +23,8 @@ class TestDefaultDto(unittest.TestCase):
 
 
 class TestGetDtoClass(unittest.TestCase):
+    mappings_module_name = ""
+
     @classmethod
     def setUpClass(cls) -> None:
         if mappings_path.is_file():
