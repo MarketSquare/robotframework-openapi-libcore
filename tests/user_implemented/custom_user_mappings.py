@@ -27,6 +27,17 @@ class WagegroupDto(Dto):
                 post_path="/employees",
                 error_code=406,
             ),
+            PropertyValueConstraint(
+                property_name="overtime_percentage",
+                values=[IGNORE],
+                invalid_value=110,
+                invalid_value_error_code=422,
+            ),
+            PropertyValueConstraint(
+                property_name="hourly_rate",
+                values=[80.50, 90.95, 99.99],
+                error_code=400
+            ),
         ]
         return relations
 
@@ -81,8 +92,9 @@ class MessageDto(Dto):
 DTO_MAPPING: Dict[Tuple[Any, Any], Any] = {
     ("/wagegroups", "post"): WagegroupDto,
     ("/wagegroups/{wagegroup_id}", "delete"): WagegroupDto,
+    ("/wagegroups/{wagegroup_id}", "put"): WagegroupDto,
     ("/employees", "post"): EmployeeDto,
     ("/employees/{employee_id}", "patch"): EmployeeDto,
     ("/energy_label/{zipcode}/{home_number}", "get"): EnergyLabelDto,
-    ("/message", "get"): MessageDto,
+    ("/secret_message", "get"): MessageDto,
 }
