@@ -218,6 +218,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
 
     @property
     def openapi_spec(self):
+        """Return a deepcopy of the parsed openapi document."""
         # protect the parsed openapi spec from being mutated by reference
         return deepcopy(self._openapi_spec)
 
@@ -690,15 +691,9 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         Returns a version of `params, headers` as present on `request_data` that has
         been modified to cause the provided `status_code`.
         """
-        if not request_data.params and not request_data.headers:
-            raise ValueError("No params or headers to invalidate.")
         if not request_data.parameters:
-            raise ValueError(
-                "Could not invalidate parameters: parameters list was empty."
-            )
-        # ensure we're not modifying mutable properties
-        params = deepcopy(request_data.params)
-        headers = deepcopy(request_data.headers)
+            raise ValueError("No params or headers to invalidate.")
+        # ensure the status_code can be triggered
         relations = request_data.dto.get_parameter_relations_for_error_code(status_code)
         relations_for_status_code = [
             r
@@ -706,44 +701,59 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             if isinstance(r, PropertyValueConstraint) and r.error_code == status_code
         ]
         relation_property_names = {r.property_name for r in relations_for_status_code}
-        parameter_names = set(params.keys()).union(set(headers.keys()))
-        if parameter_names.isdisjoint(relation_property_names):
+        if not relation_property_names:
             if status_code != self.invalid_property_default_response:
                 raise ValueError(
                     f"No relations to cause status_code {status_code} found."
                 )
-            parameter_to_invalidate = choice(tuple(parameter_names))
-            try:
-                [parameter_data] = [
-                    data
-                    for data in request_data.parameters
-                    if data["name"] == parameter_to_invalidate
-                ]
-            except Exception:
-                raise ValueError(
-                    f"{parameter_to_invalidate} not found in provided parameters."
-                ) from None
-            values_from_constraint = None
-        else:
-            parameter_to_invalidate = choice(
-                tuple(relation_property_names.intersection(parameter_names))
-            )
-            try:
-                [parameter_data] = [
-                    d
+        # ensure we're not modifying mutable properties
+        params = deepcopy(request_data.params)
+        headers = deepcopy(request_data.headers)
+
+        if status_code == self.invalid_property_default_response:
+            parameter_names = set(params.keys()).union(set(headers.keys()))
+            parameter_names.update(relation_property_names)
+            # if all parameters are optional and none were provided, randomly pick one
+            if not parameter_names:
+                parameter_names = {
+                    d["name"]
                     for d in request_data.parameters
-                    if d["name"] == parameter_to_invalidate
-                ]
-            except Exception:
-                raise ValueError(
-                    f"{parameter_to_invalidate} from Relation not found in provided parameters."
-                ) from None
-            relations_for_parameter = [
+                    if d["in"] in ["query", "header"]
+                }
+        else:
+            # non-default status_codes can only be the result of a Relation
+            parameter_names = relation_property_names
+
+        parameter_to_invalidate = choice(tuple(parameter_names))
+        # check for invalid parameters in the provided request_data
+        try:
+            [parameter_data] = [
+                data
+                for data in request_data.parameters
+                if data["name"] == parameter_to_invalidate
+            ]
+        except Exception:
+            raise ValueError(
+                f"{parameter_to_invalidate} not found in provided parameters."
+            ) from None
+        # get the constraint values if available for the chosen parameter
+        try:
+            [values_from_constraint] = [
                 r.values
                 for r in relations_for_status_code
                 if r.property_name == parameter_to_invalidate
             ]
-            values_from_constraint = relations_for_parameter[0]
+        except ValueError:
+            values_from_constraint = []
+        # if the parameter was not provided, add it to params / headers
+        params, headers = self.ensure_parameter_in_parameters(
+            parameter_to_invalidate=parameter_to_invalidate,
+            params=params,
+            headers=headers,
+            parameter_data=parameter_data,
+            values_from_constraint=values_from_constraint,
+        )
+        # determine the invalid_value
         if parameter_to_invalidate in params.keys():
             valid_value = params[parameter_to_invalidate]
         else:
@@ -753,11 +763,43 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             current_value=valid_value,
             values_from_constraint=values_from_constraint,
         )
-
+        # update the params / headers and return
         if parameter_to_invalidate in params.keys():
             params[parameter_to_invalidate] = invalid_value
         else:
             headers[parameter_to_invalidate] = str(invalid_value)
+        return params, headers
+
+    @staticmethod
+    def ensure_parameter_in_parameters(
+        parameter_to_invalidate: str,
+        params: Dict[str, Any],
+        headers: Dict[str, str],
+        parameter_data: Dict[str, Any],
+        values_from_constraint: List[Any],
+    ):
+        """
+        Returns the params, headers tuple with parameter_to_invalidate with a valid
+        value to params or headers if not originally present.
+        """
+        if (
+            parameter_to_invalidate not in params.keys()
+            and parameter_to_invalidate not in headers.keys()
+        ):
+            if values_from_constraint:
+                valid_value = choice(values_from_constraint)
+            else:
+                valid_value = value_utils.get_valid_value(parameter_data["schema"])
+            if (
+                parameter_data["in"] == "query"
+                and parameter_to_invalidate not in params.keys()
+            ):
+                params[parameter_to_invalidate] = valid_value
+            if (
+                parameter_data["in"] == "header"
+                and parameter_to_invalidate not in headers.keys()
+            ):
+                headers[parameter_to_invalidate] = valid_value
         return params, headers
 
     @keyword
@@ -783,10 +825,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         request_data = self.get_request_data(
             method="post", endpoint=resource_relation.post_path
         )
-        params = request_data.params
-        headers = request_data.headers
-        dto = request_data.dto
-        json_data = asdict(dto)
+        json_data = asdict(request_data.dto)
         json_data[resource_relation.property_name] = resource_id
         post_url: str = run_keyword(
             "get_valid_url",
@@ -794,7 +833,12 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             "post",
         )
         response: Response = run_keyword(
-            "authorized_request", post_url, "post", params, headers, json_data
+            "authorized_request",
+            post_url,
+            "post",
+            request_data.params,
+            request_data.headers,
+            json_data,
         )
         if not response.ok:
             logger.debug(
@@ -855,7 +899,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         )
 
     @keyword
-    def authorized_request(
+    def authorized_request(  # pylint: disable=too-many-arguments
         self,
         url: str,
         method: str,
