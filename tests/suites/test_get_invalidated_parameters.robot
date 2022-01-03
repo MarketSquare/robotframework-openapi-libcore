@@ -11,18 +11,10 @@ Variables       ${root}/tests/variables.py
 ${origin}=      http://localhost:8000
 
 *** Test Cases ***
-Test Get Invalidated Parameters Raises For Empty Params And Headers
-    ${request_data}=    Get Request Data    endpoint=/employees    method=get
-    ${dict}=    Create Dictionary
-    Run Keyword And Expect Error    ValueError: No params or headers to invalidate.
-    ...    Get Invalidated Parameters
-    ...    status_code=422
-    ...    request_data=${request_data}
-
 Test Get Invalidated Parameters Raises For Empty Parameters List
     ${request_data}=    Get Request Data    endpoint=/secret_message    method=get
     Evaluate    ${request_data.parameters.clear()} is None
-    Run Keyword And Expect Error    ValueError: Could not invalidate parameters: parameters list was empty.
+    Run Keyword And Expect Error    ValueError: No params or headers to invalidate.
     ...    Get Invalidated Parameters
     ...    status_code=422
     ...    request_data=${request_data}
@@ -32,14 +24,6 @@ Test Get Invalidated Parameters Raises For Mismatched Parameters List
     Evaluate    ${request_data.parameters.clear()} is None
     Evaluate    ${request_data.parameters.append({"name": "dummy"})} is None
     Run Keyword And Expect Error    ValueError: secret-code not found in provided parameters.
-    ...    Get Invalidated Parameters
-    ...    status_code=422
-    ...    request_data=${request_data}
-
-    ${request_data}=    Get Request Data    endpoint=/secret_message    method=get
-    Evaluate    ${request_data.parameters.clear()} is None
-    Evaluate    ${request_data.parameters.append({"name": "dummy"})} is None
-    Run Keyword And Expect Error    ValueError: secret-code from Relation not found in provided parameters.
     ...    Get Invalidated Parameters
     ...    status_code=401
     ...    request_data=${request_data}
@@ -67,8 +51,32 @@ Test Get Invalidated Parameters For PropertyValueConstraint
     Set Test Variable    ${secret_code}    ${invalidated[1].get("secret-code")}
     Should Be True    int($secret_code) != 42
 
-Test Get Invalidated Parameters Params
+    ${request_data}=    Get Request Data    endpoint=/secret_message    method=get
+    ${invalidated}=    Get Invalidated Parameters
+    ...    status_code=403
+    ...    request_data=${request_data}
+    Set Test Variable    ${seal}    ${invalidated[1].get("seal")}
+    Should Not Be Empty    seal
+
+Test Get Invalidated Parameters Adds Optional Parameter If Not Provided
+    ${request_data}=    Get Request Data    endpoint=/    method=get
+    Evaluate    ${request_data.headers.clear()} is None
+    ${invalidated}=    Get Invalidated Parameters
+    ...    status_code=422
+    ...    request_data=${request_data}
+    Set Test Variable    ${headers}    ${invalidated[1]}
+    Length Should Be    ${headers}    1
+
+# Test Get Invalidated Parameters For Query Param
+#    ${request_data}=    Get Request Data    endpoint=/energy_label/{zipcode}/{home_number}    method=get
+#    ${invalidated}=    Get Invalidated Parameters
+#    ...    status_code=422
+#    ...    request_data=${request_data}
+#    Set Test Variable    ${extension}    ${invalidated[0].get("extension")}
+#    Length Should Be    ${extension}    0
+
     ${request_data}=    Get Request Data    endpoint=/energy_label/{zipcode}/{home_number}    method=get
+    Evaluate    ${request_data.params.clear()} is None
     ${invalidated}=    Get Invalidated Parameters
     ...    status_code=422
     ...    request_data=${request_data}
