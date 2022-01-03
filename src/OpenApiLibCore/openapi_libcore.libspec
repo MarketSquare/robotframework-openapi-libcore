@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<keywordspec name="OpenApiLibCore" type="LIBRARY" format="HTML" scope="SUITE" generated="2021-12-28T14:57:21Z" specversion="3" source="openapi_libcore.py" lineno="160">
+<keywordspec name="OpenApiLibCore" type="LIBRARY" format="HTML" scope="SUITE" generated="2022-01-03T16:24:11Z" specversion="3" source="openapi_libcore.py" lineno="279">
 <version/>
-<doc>&lt;p&gt;Main class providing the keywords and core logic to interact with an OpenAPI.&lt;/p&gt;</doc>
+<doc>&lt;p&gt;Main class providing the keywords and core logic to interact with an OpenAPI server.&lt;/p&gt;
+&lt;p&gt;Visit the &lt;a href="https://github.com/MarketSquare/robotframework-openapi-libcore"&gt;library page&lt;/a&gt; for an introduction.&lt;/p&gt;</doc>
 <tags>
 </tags>
 <inits>
-<init name="Init" lineno="163">
+<init name="Init" lineno="287">
 <arguments repr="source: str, origin: str = , base_path: str = , mappings_path: str | Path = , username: str = , password: str = , security_token: str = , auth: AuthBase | None = None, invalid_property_default_response: int = 422">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="source: str">
 <name>source</name>
@@ -54,12 +55,29 @@
 <default>422</default>
 </arg>
 </arguments>
-<doc>&lt;p&gt;Initialize self.  See help(type(self)) for accurate signature.&lt;/p&gt;</doc>
-<shortdoc>Initialize self.  See help(type(self)) for accurate signature.</shortdoc>
+<doc>&lt;h4&gt;source&lt;/h4&gt;
+&lt;p&gt;An absolute path to an openapi.json or openapi.yaml file or an url to such a file.&lt;/p&gt;
+&lt;h4&gt;origin&lt;/h4&gt;
+&lt;p&gt;The server (and port) of the target server. E.g. &lt;code&gt;https://localhost:7000&lt;/code&gt;&lt;/p&gt;
+&lt;h4&gt;base_path&lt;/h4&gt;
+&lt;p&gt;The routing between &lt;code&gt;origin&lt;/code&gt; and the endpoints as found in the &lt;code&gt;paths&lt;/code&gt; in the openapi document. E.g. &lt;code&gt;/petshop/v2&lt;/code&gt;.&lt;/p&gt;
+&lt;h4&gt;mappings_path&lt;/h4&gt;
+&lt;p&gt;See &lt;a href="https://marketsquare.github.io/robotframework-openapi-libcore/advanced_use.html"&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;h4&gt;username&lt;/h4&gt;
+&lt;p&gt;The username to be used for Basic Authentication.&lt;/p&gt;
+&lt;h4&gt;password&lt;/h4&gt;
+&lt;p&gt;The password to be used for Basic Authentication.&lt;/p&gt;
+&lt;h4&gt;security_token&lt;/h4&gt;
+&lt;p&gt;The token to be used for token based security using the &lt;code&gt;Authorization&lt;/code&gt; header.&lt;/p&gt;
+&lt;h4&gt;auth&lt;/h4&gt;
+&lt;p&gt;A &lt;a href="https://docs.python-requests.org/en/latest/api/#authentication"&gt;requests AuthBase instance&lt;/a&gt; to be used for authentication instead of the &lt;code&gt;username&lt;/code&gt; and &lt;code&gt;password&lt;/code&gt;.&lt;/p&gt;
+&lt;h4&gt;invalid_property_default_response&lt;/h4&gt;
+&lt;p&gt;The default response code for requests with a JSON body that does not comply with the schema. Example: a value outside the specified range or a string value for a property defined as integer in the schema.&lt;/p&gt;</doc>
+<shortdoc>=== source === An absolute path to an openapi.json or openapi.yaml file or an url to such a file.</shortdoc>
 </init>
 </inits>
 <keywords>
-<kw name="Authorized Request" lineno="858">
+<kw name="Authorized Request" lineno="1060">
 <arguments repr="url: str, method: str, params: Dict[str, typing.Any] | None = None, headers: Dict[str, str] | None = None, json_data: Dict[str, typing.Any] | None = None">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
@@ -92,7 +110,7 @@
 &lt;p&gt;&amp;gt; Note: provided username / password or auth objects take precedence over token based security&lt;/p&gt;</doc>
 <shortdoc>Perform a request using the security token or authentication set in the library.</shortdoc>
 </kw>
-<kw name="Ensure In Use" lineno="764">
+<kw name="Ensure In Use" lineno="964">
 <arguments repr="url: str, resource_relation: IdReference">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
@@ -106,7 +124,7 @@
 <doc>&lt;p&gt;Ensure that the (right-most) &lt;span class="name"&gt;id&lt;/span&gt; of the resource referenced by the &lt;span class="name"&gt;url&lt;/span&gt; is used by the resource defined by the &lt;span class="name"&gt;resource_relation&lt;/span&gt;.&lt;/p&gt;</doc>
 <shortdoc>Ensure that the (right-most) `id` of the resource referenced by the `url` is used by the resource defined by the `resource_relation`.</shortdoc>
 </kw>
-<kw name="Get Ids From Url" lineno="338">
+<kw name="Get Ids From Url" lineno="497">
 <arguments repr="url: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
@@ -116,7 +134,7 @@
 <doc>&lt;p&gt;Perform a GET request on the &lt;span class="name"&gt;url&lt;/span&gt; and return the list of resource &lt;span class="name"&gt;ids&lt;/span&gt; from the response.&lt;/p&gt;</doc>
 <shortdoc>Perform a GET request on the `url` and return the list of resource `ids` from the response.</shortdoc>
 </kw>
-<kw name="Get Invalid Json Data" lineno="633">
+<kw name="Get Invalid Json Data" lineno="792">
 <arguments repr="url: str, method: str, status_code: int, request_data: RequestData">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
@@ -139,7 +157,7 @@
 &lt;p&gt;&amp;gt; Note: applicable UniquePropertyValueConstraint and IdReference Relations are considered before changes to &lt;span class="name"&gt;json_data&lt;/span&gt; are made.&lt;/p&gt;</doc>
 <shortdoc>Return `json_data` based on the `dto` on the `request_data` that will cause the provided `status_code` for the `method` operation on the `url`.</shortdoc>
 </kw>
-<kw name="Get Invalidated Parameters" lineno="684">
+<kw name="Get Invalidated Parameters" lineno="843">
 <arguments repr="status_code: int, request_data: RequestData">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="status_code: int">
 <name>status_code</name>
@@ -153,7 +171,7 @@
 <doc>&lt;p&gt;Returns a version of &lt;span class="name"&gt;params, headers&lt;/span&gt; as present on &lt;span class="name"&gt;request_data&lt;/span&gt; that has been modified to cause the provided &lt;span class="name"&gt;status_code&lt;/span&gt;.&lt;/p&gt;</doc>
 <shortdoc>Returns a version of `params, headers` as present on `request_data` that has been modified to cause the provided `status_code`.</shortdoc>
 </kw>
-<kw name="Get Invalidated Url" lineno="598">
+<kw name="Get Invalidated Url" lineno="757">
 <arguments repr="valid_url: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="valid_url: str">
 <name>valid_url</name>
@@ -164,7 +182,7 @@
 &lt;p&gt;Raises ValueError if the valid_url cannot be invalidated.&lt;/p&gt;</doc>
 <shortdoc>Return an url with all the path parameters in the `valid_url` replaced by a random UUID.</shortdoc>
 </kw>
-<kw name="Get Json Data For Dto Class" lineno="511">
+<kw name="Get Json Data For Dto Class" lineno="670">
 <arguments repr="schema: Dict[str, typing.Any], dto_class: Dto | Type[OpenApiLibCore.dto_base.Dto], operation_id: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="schema: Dict[str, typing.Any]">
 <name>schema</name>
@@ -183,7 +201,7 @@
 <doc>&lt;p&gt;Generate a valid (json-compatible) dict for all the &lt;span class="name"&gt;dto_class&lt;/span&gt; properties.&lt;/p&gt;</doc>
 <shortdoc>Generate a valid (json-compatible) dict for all the `dto_class` properties.</shortdoc>
 </kw>
-<kw name="Get Json Data With Conflict" lineno="806">
+<kw name="Get Json Data With Conflict" lineno="1008">
 <arguments repr="url: str, method: str, dto: Dto, conflict_status_code: int">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
@@ -205,7 +223,7 @@
 <doc>&lt;p&gt;Return &lt;span class="name"&gt;json_data&lt;/span&gt; based on the &lt;span class="name"&gt;UniquePropertyValueConstraint&lt;/span&gt; that must be returned by the &lt;span class="name"&gt;get_relations&lt;/span&gt; implementation on the &lt;span class="name"&gt;dto&lt;/span&gt; for the given &lt;span class="name"&gt;conflict_status_code&lt;/span&gt;.&lt;/p&gt;</doc>
 <shortdoc>Return `json_data` based on the `UniquePropertyValueConstraint` that must be returned by the `get_relations` implementation on the `dto` for the given `conflict_status_code`.</shortdoc>
 </kw>
-<kw name="Get Parameterized Endpoint From Url" lineno="621">
+<kw name="Get Parameterized Endpoint From Url" lineno="780">
 <arguments repr="url: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
@@ -215,7 +233,7 @@
 <doc>&lt;p&gt;Return the endpoint as found in the &lt;span class="name"&gt;paths&lt;/span&gt; section based on the given &lt;span class="name"&gt;url&lt;/span&gt;.&lt;/p&gt;</doc>
 <shortdoc>Return the endpoint as found in the `paths` section based on the given `url`.</shortdoc>
 </kw>
-<kw name="Get Request Data" lineno="363">
+<kw name="Get Request Data" lineno="522">
 <arguments repr="endpoint: str, method: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="endpoint: str">
 <name>endpoint</name>
@@ -229,7 +247,7 @@
 <doc>&lt;p&gt;Return an object with valid request data for body, headers and query params.&lt;/p&gt;</doc>
 <shortdoc>Return an object with valid request data for body, headers and query params.</shortdoc>
 </kw>
-<kw name="Get Valid Id For Endpoint" lineno="263">
+<kw name="Get Valid Id For Endpoint" lineno="422">
 <arguments repr="endpoint: str, method: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="endpoint: str">
 <name>endpoint</name>
@@ -244,7 +262,7 @@
 &lt;p&gt;To prevent resource conflicts with other test cases, a new resource is created (POST) if possible.&lt;/p&gt;</doc>
 <shortdoc>Support keyword that returns the `id` for an existing resource at `endpoint`.</shortdoc>
 </kw>
-<kw name="Get Valid Url" lineno="225">
+<kw name="Get Valid Url" lineno="384">
 <arguments repr="endpoint: str, method: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="endpoint: str">
 <name>endpoint</name>
@@ -257,7 +275,7 @@
 </arguments>
 <doc>&lt;p&gt;This keyword returns a valid url for the given &lt;span class="name"&gt;endpoint&lt;/span&gt; and &lt;span class="name"&gt;method&lt;/span&gt;.&lt;/p&gt;
 &lt;p&gt;If the &lt;span class="name"&gt;endpoint&lt;/span&gt; contains path parameters the Get Valid Id For Endpoint keyword will be executed to retrieve valid ids for the path parameters.&lt;/p&gt;
-&lt;p&gt;&amp;gt; Note: if valid ids cannot be retrieved within the scope of the API, the &lt;span class="name"&gt;PathPropertiesConstraint&lt;/span&gt; Relation can be used. More information can be found [here](https://marketsquare.github.io/robotframework-openapi-libcore/advanced_use.html).&lt;/p&gt;</doc>
+&lt;p&gt;&amp;gt; Note: if valid ids cannot be retrieved within the scope of the API, the &lt;span class="name"&gt;PathPropertiesConstraint&lt;/span&gt; Relation can be used. More information can be found &lt;a href="https://marketsquare.github.io/robotframework-openapi-libcore/advanced_use.html"&gt;here&lt;/a&gt;.&lt;/p&gt;</doc>
 <shortdoc>This keyword returns a valid url for the given `endpoint` and `method`.</shortdoc>
 </kw>
 </keywords>
