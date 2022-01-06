@@ -15,6 +15,7 @@ from OpenApiLibCore import value_utils
 logger = getLogger(__name__)
 
 NOT_SET = object()
+SENTINEL = object()
 
 
 class ResourceRelation(ABC):  # pylint: disable=too-few-public-methods
@@ -124,15 +125,13 @@ class Dto(ABC):
         """Return a data set with one of the properties set to an invalid value or type."""
         properties: Dict[str, Any] = self.__dict__
 
-        relations = [
-            r
-            for r in self.get_relations()
-            if r.error_code == status_code
-            or getattr(r, "invalid_value_error_code", None) == status_code
-        ]
+        relations = self.get_relations_for_error_code(error_code=status_code)
         property_names = [r.property_name for r in relations]
         if status_code == invalid_property_default_code:
-            property_names += list(properties.keys())
+            # add all properties defined in the schema, including optional properties
+            property_names.extend((schema["properties"].keys()))
+            # remove duplicates
+            property_names = list(set(property_names))
         if not property_names:
             raise ValueError(
                 f"No property can be invalidated to cause status_code {status_code}"
@@ -156,9 +155,6 @@ class Dto(ABC):
                 properties[property_name] = invalid_value
                 return properties
 
-            value_schema = schema["properties"][property_name]
-            current_value = properties[property_name]
-
             invalid_value_from_constraint = [
                 r.invalid_value
                 for r in relations
@@ -172,6 +168,21 @@ class Dto(ABC):
             ):
                 properties[property_name] = invalid_value_from_constraint[0]
                 return properties
+
+            value_schema = schema["properties"][property_name]
+            # there may not be a current_value when invalidating an optional property
+            current_value = properties.get(property_name, SENTINEL)
+            if current_value == SENTINEL:
+                # the current_value isn't very relevant as long as the type is correct
+                # so no logic to handle Relations / objects / arrays here
+                value_schema = schema["properties"][property_name]
+                property_type = value_schema["type"]
+                if property_type == "object":
+                    current_value = {}
+                elif property_type == "array":
+                    current_value = []
+                else:
+                    current_value = value_utils.get_valid_value(value_schema)
 
             values_from_constraint = [
                 r.values[0]
