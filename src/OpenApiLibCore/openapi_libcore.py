@@ -123,11 +123,12 @@ import json as _json
 import sys
 from copy import deepcopy
 from dataclasses import Field, asdict, dataclass, field, make_dataclass
+from functools import cached_property
 from itertools import zip_longest
 from logging import getLogger
 from pathlib import Path
 from random import choice
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union
 from uuid import uuid4
 
 from openapi_core import create_spec
@@ -250,6 +251,32 @@ class RequestData:
         ]
         in_optional_headers: Callable[[str], bool] = lambda x: x in optional_headers
         return any(map(in_optional_headers, self.headers))
+
+    @cached_property
+    def headers_that_can_be_invalidated(self) -> Set[str]:
+        """
+        The header parameters that can be invalidated by violating data
+        restrictions or by not providing them in a request.
+        """
+        result = set()
+        headers = [h for h in self.parameters if h.get("in") == "header"]
+        for header in headers:
+            schema: Dict[str, Any] = header["schema"]
+            if set(schema.keys()).intersection(
+                {
+                    "enum",
+                    "minimum",
+                    "maximum",
+                    "exclusiveMinimum",
+                    "exclusiveMaximum",
+                    "minLength",
+                    "maxLength",
+                }
+            ):
+                result.add(header["name"])
+            if header["required"]:
+                result.add(header["name"])
+        return result
 
     def get_required_properties_dict(self) -> Dict[str, Any]:
         """Get the json-compatible dto data containing only the required properties."""
@@ -829,14 +856,11 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             run_keyword("ensure_in_use", url, resource_relation)
             json_data = asdict(request_data.dto)
         else:
-            try:
-                json_data = request_data.dto.get_invalidated_data(
-                    schema=request_data.dto_schema,
-                    status_code=status_code,
-                    invalid_property_default_code=self.invalid_property_default_response,
-                )
-            except ValueError as exception:
-                raise exception
+            json_data = request_data.dto.get_invalidated_data(
+                schema=request_data.dto_schema,
+                status_code=status_code,
+                invalid_property_default_code=self.invalid_property_default_response,
+            )
         return json_data
 
     @keyword
@@ -869,15 +893,17 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         headers = deepcopy(request_data.headers)
 
         if status_code == self.invalid_property_default_response:
-            parameter_names = set(params.keys()).union(set(headers.keys()))
+            parameter_names = set(params.keys()).union(
+                request_data.headers_that_can_be_invalidated
+            )
             parameter_names.update(relation_property_names)
             # if all parameters are optional and none were provided, randomly pick one
             if not parameter_names:
                 parameter_names = {
-                    d["name"]
-                    for d in request_data.parameters
-                    if d["in"] in ["query", "header"]
+                    d["name"] for d in request_data.parameters if d["in"] in ["query"]
                 }
+            if not parameter_names:
+                raise ValueError("Headers cannot be invalidated.")
         else:
             # non-default status_codes can only be the result of a Relation
             parameter_names = relation_property_names
@@ -916,6 +942,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             valid_value = params[parameter_to_invalidate]
         else:
             valid_value = headers[parameter_to_invalidate]
+
         invalid_value = value_utils.get_invalid_value(
             value_schema=parameter_data["schema"],
             current_value=valid_value,
