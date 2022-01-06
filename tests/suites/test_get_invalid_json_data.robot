@@ -90,3 +90,16 @@ Test Get Invalid Json Data For Dto With Other Relations
     ${response}=    Authorized Request
     ...    url=${origin}/employees    method=post    json_data=${invalid_json}
     Should Be Equal As Integers    ${response.status_code}    403
+
+Test Get Invalid Json Data Can Invalidate Missing Optional Parameters
+    ${request_data}=    Get Request Data    endpoint=/employees/{emplyee_id}    method=patch
+    Evaluate    ${request_data.dto.__dict__.clear()} is None
+    ${invalid_json}=    Get Invalid Json Data
+    ...    url=${origin}/employees/{employee_id}
+    ...    method=patch
+    ...    status_code=422
+    ...    request_data=${request_data}
+    Should Not Be Equal    ${invalid_json}    ${request_data.dto}
+    ${response}=    Authorized Request
+    ...    url=${origin}/employees/{employee_id}    method=patch    json_data=${invalid_json}
+    Should Be Equal As Integers    ${response.status_code}    422

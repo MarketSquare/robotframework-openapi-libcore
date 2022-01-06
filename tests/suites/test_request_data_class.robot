@@ -31,6 +31,11 @@ Test Has Optional Headers
     ${request_data}=    Get Request Data    endpoint=/    method=get
     Should Be Equal    ${request_data.has_optional_headers}    ${TRUE}
 
+Test Headers That Can Be Invalidated
+    ${request_data}=    Get Request Data    endpoint=/secret_message    method=get
+    Set Test Variable    ${headers}    ${request_data.headers_that_can_be_invalidated}
+    Should Contain    ${headers}    secret-code
+
 Test Get Required Properties Dict
     ${request_data}=    Get Request Data    endpoint=/employees    method=post
     Should Not Be Empty    ${request_data.dto.parttime_day}
