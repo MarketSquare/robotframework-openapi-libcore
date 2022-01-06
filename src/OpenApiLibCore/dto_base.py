@@ -172,7 +172,7 @@ class Dto(ABC):
             value_schema = schema["properties"][property_name]
             # there may not be a current_value when invalidating an optional property
             current_value = properties.get(property_name, SENTINEL)
-            if current_value == SENTINEL:
+            if current_value is SENTINEL:
                 # the current_value isn't very relevant as long as the type is correct
                 # so no logic to handle Relations / objects / arrays here
                 value_schema = schema["properties"][property_name]
