@@ -1,5 +1,6 @@
 import datetime
 from enum import Enum
+from sys import float_info
 from typing import Callable, Dict, List, Optional
 from uuid import uuid4
 
@@ -29,6 +30,7 @@ app = FastAPI()
 
 REMOVE_ME: str = uuid4().hex
 DEPRECATED: int = uuid4().int
+DELTA = 1000 * float_info.epsilon
 
 
 class EnergyLabel(str, Enum):
@@ -186,6 +188,11 @@ def get_energy_label(
 def post_wagegroup(wagegroup: WageGroup) -> WageGroup:
     if wagegroup.id in WAGE_GROUPS.keys():
         raise HTTPException(status_code=418, detail="Wage group already exists.")
+    if not (0.99 - DELTA) < (wagegroup.hourly_rate % 1) < (0.99 + DELTA):
+        raise HTTPException(
+            status_code=422,
+            detail="Hourly rates must end with .99 for psychological reasons.",
+        )
     if wagegroup.overtime_percentage != DEPRECATED:
         raise HTTPException(
             status_code=422, detail="Overtime percentage is deprecated."
@@ -218,6 +225,11 @@ def put_wagegroup(wagegroup_id: str, wagegroup: WageGroup) -> WageGroup:
         raise HTTPException(status_code=404, detail="Wage group not found.")
     if wagegroup.id in WAGE_GROUPS.keys():
         raise HTTPException(status_code=418, detail="Wage group already exists.")
+    if not (0.99 - DELTA) < (wagegroup.hourly_rate % 1) < (0.99 + DELTA):
+        raise HTTPException(
+            status_code=422,
+            detail="Hourly rates must end with .99 for psychological reasons.",
+        )
     if wagegroup.overtime_percentage != DEPRECATED:
         raise HTTPException(
             status_code=422, detail="Overtime percentage is deprecated."

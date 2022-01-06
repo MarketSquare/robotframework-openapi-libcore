@@ -35,8 +35,26 @@ class WagegroupDto(Dto):
             ),
             PropertyValueConstraint(
                 property_name="hourly_rate",
-                values=[80.50, 90.95, 99.99],
+                values=[80.99, 90.99, 99.99],
                 error_code=400,
+            ),
+        ]
+        return relations
+
+
+class WagegroupDeleteDto(Dto):
+    @staticmethod
+    def get_relations() -> List[Relation]:
+        relations: List[Relation] = [
+            UniquePropertyValueConstraint(
+                property_name="id",
+                value="Teapot",
+                error_code=418,
+            ),
+            IdReference(
+                property_name="wagegroup_id",
+                post_path="/employees",
+                error_code=406,
             ),
         ]
         return relations
@@ -91,7 +109,7 @@ class MessageDto(Dto):
 
 DTO_MAPPING: Dict[Tuple[Any, Any], Any] = {
     ("/wagegroups", "post"): WagegroupDto,
-    ("/wagegroups/{wagegroup_id}", "delete"): WagegroupDto,
+    ("/wagegroups/{wagegroup_id}", "delete"): WagegroupDeleteDto,
     ("/wagegroups/{wagegroup_id}", "put"): WagegroupDto,
     ("/employees", "post"): EmployeeDto,
     ("/employees/{employee_id}", "patch"): EmployeeDto,
