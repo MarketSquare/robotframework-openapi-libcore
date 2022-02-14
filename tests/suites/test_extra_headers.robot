@@ -20,4 +20,3 @@ Test Authorized Request With Security Token And Extra Headers
     Should Be True    $EXTRA_HEADERS.items() <= $response.request.headers.items()
     ${TOKEN_HEADER}=    Create Dictionary    Authorization=secret
     Should Be True    $TOKEN_HEADER.items() <= $response.request.headers.items()
-
