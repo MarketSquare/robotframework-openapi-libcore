@@ -1,3 +1,5 @@
+# pylint: disable=missing-function-docstring
+from importlib.metadata import version
 import pathlib
 import subprocess
 
@@ -5,13 +7,14 @@ from invoke import task
 
 from OpenApiLibCore import openapi_libcore
 
-project_root = pathlib.Path(__file__).parent.resolve().as_posix()
+ROOT = pathlib.Path(__file__).parent.resolve().as_posix()
+VERSION = version('robotframework-openapi-libcore')
 
 
 @task
 def testserver(context):
-    testserver_path = f"{project_root}/tests/server/testserver.py"
-    subprocess.run(f"python {testserver_path}", shell=True)
+    testserver_path = f"{ROOT}/tests/server/testserver.py"
+    subprocess.run(f"python {testserver_path}", shell=True, check=False)
 
 
 @task
@@ -22,9 +25,9 @@ def utests(context):
         "-m",
         "unittest",
         "discover ",
-        f"{project_root}/tests/unittests",
+        f"{ROOT}/tests/unittests",
     ]
-    subprocess.run(" ".join(cmd), shell=True)
+    subprocess.run(" ".join(cmd), shell=True, check=False)
 
 
 @task
@@ -34,63 +37,65 @@ def atests(context):
         "run",
         "-m",
         "robot",
-        f"--argumentfile={project_root}/tests/rf_cli.args",
-        f"--variable=root:{project_root}",
-        f"--outputdir={project_root}/tests/logs",
+        f"--argumentfile={ROOT}/tests/rf_cli.args",
+        f"--variable=root:{ROOT}",
+        f"--outputdir={ROOT}/tests/logs",
         "--loglevel=TRACE:DEBUG",
-        f"{project_root}/tests/suites",
+        f"{ROOT}/tests/suites",
     ]
-    subprocess.run(" ".join(cmd), shell=True)
+    subprocess.run(" ".join(cmd), shell=True, check=False)
 
 
 @task(utests, atests)
 def tests(context):
-    subprocess.run("coverage combine", shell=True)
-    subprocess.run("coverage report", shell=True)
-    subprocess.run("coverage html", shell=True)
+    subprocess.run("coverage combine", shell=True, check=False)
+    subprocess.run("coverage report", shell=True, check=False)
+    subprocess.run("coverage html", shell=True, check=False)
 
 
 @task
 def lint(context):
-    subprocess.run(f"mypy {project_root}", shell=True)
-    subprocess.run(f"pylint {project_root}/src/OpenApiLibCore", shell=True)
+    subprocess.run(f"mypy {ROOT}", shell=True, check=False)
+    subprocess.run(f"pylint {ROOT}/src/OpenApiLibCore", shell=True, check=False)
 
 
 @task
 def format_code(context):
-    subprocess.run(f"black {project_root}", shell=True)
-    subprocess.run(f"isort {project_root}", shell=True)
-    subprocess.run(f"robotidy {project_root}", shell=True)
+    subprocess.run(f"black {ROOT}", shell=True, check=False)
+    subprocess.run(f"isort {ROOT}", shell=True, check=False)
+    subprocess.run(f"robotidy {ROOT}", shell=True, check=False)
 
 
 @task
 def libdoc(context):
-    json_file = f"{project_root}/tests/files/petstore_openapi.json"
+    json_file = f"{ROOT}/tests/files/petstore_openapi.json"
     source = f"OpenApiLibCore::{json_file}"
-    target = f"{project_root}/docs/openapi_libcore.html"
+    target = f"{ROOT}/docs/openapi_libcore.html"
     cmd = [
         "python",
         "-m",
         "robot.libdoc",
+        f"-v {VERSION}",
         source,
         target,
     ]
-    subprocess.run(" ".join(cmd), shell=True)
+    subprocess.run(" ".join(cmd), shell=True, check=False)
 
 
 @task
 def libspec(context):
-    json_file = f"{project_root}/tests/files/petstore_openapi.json"
+    json_file = f"{ROOT}/tests/files/petstore_openapi.json"
     source = f"OpenApiLibCore::{json_file}"
-    target = f"{project_root}/src/OpenApiLibCore/openapi_libcore.libspec"
+    target = f"{ROOT}/src/OpenApiLibCore/openapi_libcore.libspec"
     cmd = [
         "python",
         "-m",
         "robot.libdoc",
+        f"-v {VERSION}",
         source,
         target,
     ]
-    subprocess.run(" ".join(cmd), shell=True)
+    subprocess.run(" ".join(cmd), shell=True, check=False)
 
 
 @task
@@ -106,7 +111,7 @@ def readme(context):
     # ---
     # """)
     front_matter = """---\n---\n"""
-    with open(f"{project_root}/docs/README.md", "w", encoding="utf-8") as readme:
+    with open(f"{ROOT}/docs/README.md", "w", encoding="utf-8") as readme:
         doc_string = openapi_libcore.__doc__
         readme.write(front_matter)
         readme.write(str(doc_string).replace("\\", "\\\\").replace("\\\\*", "\\*"))
@@ -114,9 +119,10 @@ def readme(context):
 
 @task(format_code, libdoc, libspec, readme)
 def build(context):
-    subprocess.run("poetry build", shell=True)
+    subprocess.run("poetry build", shell=True, check=False)
 
 
 @task(post=[build])
 def bump_version(context, rule):
-    subprocess.run(f"poetry version {rule}", shell=True)
+    subprocess.run(f"poetry version {rule}", shell=True, check=False)
+    subprocess.run("poetry install", shell=True, check=False)
