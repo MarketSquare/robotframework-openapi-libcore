@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 
 from OpenApiLibCore import (
     IGNORE,
@@ -6,7 +6,6 @@ from OpenApiLibCore import (
     Dto,
     IdDependency,
     IdReference,
-    PathPropertiesConstraint,
     PropertyValueConstraint,
     Relation,
     UniquePropertyValueConstraint,
@@ -62,6 +61,7 @@ class EmployeeDto(Dto):
 
 
 def get_variables():
+    """Automatically called by Robot Framework to load variables."""
     id_reference = IdReference(
         property_name="wagegroup_id",
         post_path="/employees",
@@ -75,10 +75,12 @@ def get_variables():
     wagegroup_dto = WagegroupDto
     employee_dto = EmployeeDto
     default_dto = DefaultDto
+    extra_headers: Dict[str, str] = {"foo": "bar", "eggs": "bacon"}
     return {
         "ID_REFERENCE": id_reference,
         "INVALID_ID_REFERENCE": invalid_id_reference,
         "DEFAULT_DTO": default_dto,
         "WAGEGROUP_DTO": wagegroup_dto,
         "EMPLOYEE_DTO": employee_dto,
+        "EXTRA_HEADERS": extra_headers,
     }

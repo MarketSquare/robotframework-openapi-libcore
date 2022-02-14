@@ -321,6 +321,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         password: str = "",
         security_token: str = "",
         auth: Optional[AuthBase] = None,
+        extra_headers: Optional[Dict[str, str]] = None,
         invalid_property_default_response: int = 422,
     ) -> None:
         # region: docstring
@@ -350,6 +351,11 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         === auth ===
         A [https://docs.python-requests.org/en/latest/api/#authentication | requests AuthBase instance]
         to be used for authentication instead of the ``username`` and ``password``.
+
+        === extra_headers ===
+        A dictionary with extra / custom headers that will be send with every request.
+        This parameter can be used to send headers that are not documented in the
+        openapi document or to provide an API-key.
 
         === invalid_property_default_response ===
         The default response code for requests with a JSON body that does not comply with
@@ -382,6 +388,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         self.auth = auth
         if username and password:
             self.auth = HTTPBasicAuth(username, password)
+        self.extra_headers = extra_headers
         self.invalid_property_default_response = invalid_property_default_response
         if mappings_path and str(mappings_path) != ".":
             mappings_path = Path(mappings_path)
@@ -1098,10 +1105,12 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         > Note: provided username / password or auth objects take precedence over token
             based security
         """
+        headers = headers if headers else {}
+        if self.extra_headers:
+            headers.update(self.extra_headers)
         # if both an auth object and a token are available, auth takes precedence
         if self.security_token and not self.auth:
             security_header = {"Authorization": self.security_token}
-            headers = headers if headers else {}
             headers.update(security_header)
         response = self.session.request(
             url=url,
