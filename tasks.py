@@ -1,14 +1,14 @@
 # pylint: disable=missing-function-docstring
-from importlib.metadata import version
 import pathlib
 import subprocess
+from importlib.metadata import version
 
 from invoke import task
 
 from OpenApiLibCore import openapi_libcore
 
 ROOT = pathlib.Path(__file__).parent.resolve().as_posix()
-VERSION = version('robotframework-openapi-libcore')
+VERSION = version("robotframework-openapi-libcore")
 
 
 @task
