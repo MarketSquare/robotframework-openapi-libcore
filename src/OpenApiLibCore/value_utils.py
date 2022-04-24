@@ -24,6 +24,8 @@ def get_valid_value(value_schema: Dict[str, Any]) -> Any:
         return get_random_float(value_schema=value_schema)
     if value_type == "string":
         return get_random_string(value_schema=value_schema)
+    if value_type == "array":
+        return get_random_array(value_schema=value_schema)
     raise NotImplementedError(f"Type '{value_type}' is currently not supported")
 
 
@@ -133,6 +135,20 @@ def get_random_string(value_schema: Dict[str, Any]) -> str:
         value = value + uuid4().hex
     if len(value) > maximum:
         value = value[:maximum]
+    return value
+
+
+def get_random_array(value_schema: Dict[str, Any]) -> List[Any]:
+    """Generate a list with random elements as specified by the schema."""
+    minimum = value_schema.get("minItems", 0)
+    maximum = value_schema.get("maxItems", 1)
+    if minimum > maximum:
+        maximum = minimum
+    items_schema = value_schema["items"]
+    value = []
+    for _ in range(maximum):
+        item_value = get_valid_value(items_schema)
+        value.append(item_value)
     return value
 
 
