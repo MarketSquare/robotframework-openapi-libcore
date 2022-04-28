@@ -24,6 +24,8 @@ def get_valid_value(value_schema: Dict[str, Any]) -> Any:
         return get_random_float(value_schema=value_schema)
     if value_type == "string":
         return get_random_string(value_schema=value_schema)
+    if value_type == "array":
+        return get_random_array(value_schema=value_schema)
     raise NotImplementedError(f"Type '{value_type}' is currently not supported")
 
 
@@ -136,6 +138,20 @@ def get_random_string(value_schema: Dict[str, Any]) -> str:
     return value
 
 
+def get_random_array(value_schema: Dict[str, Any]) -> List[Any]:
+    """Generate a list with random elements as specified by the schema."""
+    minimum = value_schema.get("minItems", 0)
+    maximum = value_schema.get("maxItems", 1)
+    if minimum > maximum:
+        maximum = minimum
+    items_schema = value_schema["items"]
+    value = []
+    for _ in range(maximum):
+        item_value = get_valid_value(items_schema)
+        value.append(item_value)
+    return value
+
+
 def get_invalid_value_from_constraint(
     values_from_constraint: List[Any], value_type: str
 ) -> Any:
@@ -218,6 +234,14 @@ def get_value_out_of_bounds(value_schema: Dict[str, Any], current_value: Any) ->
             return exclusive_minimum
         if exclusive_maximum := value_schema.get("exclusiveMaximum"):
             return exclusive_maximum
+    if value_type == "array":
+        if minimum := value_schema.get("minItems", 0) > 0:
+            return current_value[0 : minimum - 1]
+        if maximum := value_schema.get("maxItems"):
+            invalid_value = current_value if current_value else ["x"]
+            while len(invalid_value) <= maximum:
+                invalid_value.append(choice(invalid_value))
+            return invalid_value
     if value_type == "string":
         # if there is a minimum length, send 1 character less
         if minimum := value_schema.get("minLength", 0):

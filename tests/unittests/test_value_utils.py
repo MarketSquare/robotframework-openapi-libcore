@@ -1,9 +1,10 @@
+# pylint: disable="missing-class-docstring", "missing-function-docstring"
 import unittest
 from sys import float_info
 
-EPSILON = float_info.epsilon
-
 from OpenApiLibCore import IGNORE, value_utils
+
+EPSILON = float_info.epsilon
 
 
 class TestRandomInteger(unittest.TestCase):
@@ -149,6 +150,30 @@ class TestRandomString(unittest.TestCase):
         self.assertEqual(len(value), 42)
 
 
+class TestRandomArray(unittest.TestCase):
+    def test_default_min_max(self):
+        schema = {"items": {"type": "string"}}
+        value = value_utils.get_random_array(schema)
+        self.assertEqual(len(value), 1)
+
+        schema = {"maxItems": 0, "items": {"type": "string"}}
+        value = value_utils.get_random_array(schema)
+        self.assertEqual(value, [])
+
+    def test_min_max(self):
+        schema = {"maxItems": 3, "items": {"type": "string"}}
+        value = value_utils.get_random_array(schema)
+        self.assertEqual(len(value), 3)
+
+        schema = {"minItems": 5, "items": {"type": "string"}}
+        value = value_utils.get_random_array(schema)
+        self.assertEqual(len(value), 5)
+
+        schema = {"minItems": 7, "maxItems": 5, "items": {"type": "string"}}
+        value = value_utils.get_random_array(schema)
+        self.assertEqual(len(value), 7)
+
+
 class TestGetValidValue(unittest.TestCase):
     def test_enum(self):
         schema = {"enum": ["foo", "bar"]}
@@ -175,8 +200,32 @@ class TestGetValidValue(unittest.TestCase):
         value = value_utils.get_valid_value(schema)
         self.assertIsInstance(value, str)
 
+    def test_bool_array(self):
+        schema = {"type": "array", "items": {"type": "boolean"}}
+        value = value_utils.get_valid_value(schema)
+        self.assertIsInstance(value, list)
+        self.assertIsInstance(value[0], bool)
+
+    def test_int_array(self):
+        schema = {"type": "array", "items": {"type": "integer"}}
+        value = value_utils.get_valid_value(schema)
+        self.assertIsInstance(value, list)
+        self.assertIsInstance(value[0], int)
+
+    def test_number_array(self):
+        schema = {"type": "array", "items": {"type": "number"}}
+        value = value_utils.get_valid_value(schema)
+        self.assertIsInstance(value, list)
+        self.assertIsInstance(value[0], float)
+
+    def test_string_array(self):
+        schema = {"type": "array", "items": {"type": "string"}}
+        value = value_utils.get_valid_value(schema)
+        self.assertIsInstance(value, list)
+        self.assertIsInstance(value[0], str)
+
     def test_raises(self):
-        schema = {"type": "array"}
+        schema = {"type": "object"}
         self.assertRaises(NotImplementedError, value_utils.get_valid_value, schema)
 
 
@@ -536,7 +585,7 @@ class TestValueOutOfBounds(unittest.TestCase):
         self.assertGreater(len(value), maximum)
         self.assertIsInstance(value, str)
 
-    def test_minimum_zero(self):
+    def test_minimum_length_zero(self):
         minimum = 0
         value_schema = {"type": "string", "minLength": minimum}
         current_value = "irrelevant"
@@ -546,10 +595,54 @@ class TestValueOutOfBounds(unittest.TestCase):
         )
         self.assertEqual(value, None)
 
-    def test_maximum_zero(self):
+    def test_maximum_length_zero(self):
         maximum = 0
         value_schema = {"type": "string", "maxLength": maximum}
         current_value = "irrelevant"
+        value = value_utils.get_value_out_of_bounds(
+            value_schema=value_schema,
+            current_value=current_value,
+        )
+        self.assertEqual(value, None)
+
+    def test_min_items(self):
+        minimum = 1
+        value_schema = {
+            "type": "array",
+            "minItems": minimum,
+            "items": {"type": "string"},
+        }
+        current_value = ["irrelevant"]
+        value = value_utils.get_value_out_of_bounds(
+            value_schema=value_schema,
+            current_value=current_value,
+        )
+        self.assertLess(len(value), minimum)
+        self.assertIsInstance(value, list)
+
+    def test_max_items(self):
+        maximum = 3
+        value_schema = {
+            "type": "array",
+            "maxItems": maximum,
+            "items": {"type": "boolean"},
+        }
+        current_value = [True, False]
+        value = value_utils.get_value_out_of_bounds(
+            value_schema=value_schema,
+            current_value=current_value,
+        )
+        self.assertGreater(len(value), maximum)
+        self.assertIsInstance(value, list)
+
+    def test_min_items_zero(self):
+        minimum = 0
+        value_schema = {
+            "type": "array",
+            "minItems": minimum,
+            "items": {"type": "number"},
+        }
+        current_value = [42]
         value = value_utils.get_value_out_of_bounds(
             value_schema=value_schema,
             current_value=current_value,
