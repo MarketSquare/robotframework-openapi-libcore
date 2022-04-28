@@ -234,6 +234,14 @@ def get_value_out_of_bounds(value_schema: Dict[str, Any], current_value: Any) ->
             return exclusive_minimum
         if exclusive_maximum := value_schema.get("exclusiveMaximum"):
             return exclusive_maximum
+    if value_type == "array":
+        if minimum := value_schema.get("minItems", 0) > 0:
+            return current_value[0 : minimum - 1]
+        if maximum := value_schema.get("maxItems"):
+            invalid_value = current_value if current_value else ["x"]
+            while len(invalid_value) <= maximum:
+                invalid_value.append(choice(invalid_value))
+            return invalid_value
     if value_type == "string":
         # if there is a minimum length, send 1 character less
         if minimum := value_schema.get("minLength", 0):
