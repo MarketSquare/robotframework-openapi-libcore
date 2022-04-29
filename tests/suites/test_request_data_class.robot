@@ -57,7 +57,7 @@ Test Get Required Params
 
 Test Get Required Headers
     ${request_data}=    Get Request Data    endpoint=/secret_message    method=get
-    Should Not Be Empty    ${request_data.headers.get("secret-code")}
+    Should Be Equal As Integers    ${request_data.headers.get("secret-code")}    42
     Set Test Variable    ${required_headers}    ${request_data.get_required_headers()}
     Should Contain    ${required_headers}    secret-code
     Should Not Contain    ${required_headers}    seal
