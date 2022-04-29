@@ -246,6 +246,47 @@ class RequestData:
         in_optional_params: Callable[[str], bool] = lambda x: x in optional_params
         return any(map(in_optional_params, self.params))
 
+    @cached_property
+    def params_that_can_be_invalidated(self) -> Set[str]:
+        """
+        The query parameters that can be invalidated by violating data
+        restrictions, data type or by not providing them in a request.
+        """
+        result = set()
+        params = [h for h in self.parameters if h.get("in") == "query"]
+        for param in params:
+            schema: Dict[str, Any] = param["schema"]
+            # any basic non-string type can be invalidated by replacing with a string
+            if param["schema"]["type"] not in ["string", "array", "object"]:
+                result.add(param["name"])
+                continue
+            # enums, strings and arrays with boundaries can be invalidated
+            if set(schema.keys()).intersection(
+                {
+                    "enum",
+                    "minLength",
+                    "maxLength",
+                    "minItems",
+                    "maxItems",
+                }
+            ):
+                result.add(param["name"])
+                continue
+            # required params can be omitted to invalidate a request
+            if param["required"]:
+                result.add(param["name"])
+                continue
+            # an array of basic non-string type can be invalidated by replacing the
+            # items in the array with strings
+            if schema["type"] == "array" and schema["items"]["type"] not in [
+                "string",
+                "array",
+                "object",
+            ]:
+                result.add(param["name"])
+                continue
+        return result
+
     @property
     def has_optional_headers(self) -> bool:
         """Whether or not any of the headers are optional."""
@@ -267,13 +308,14 @@ class RequestData:
         headers = [h for h in self.parameters if h.get("in") == "header"]
         for header in headers:
             schema: Dict[str, Any] = header["schema"]
+            # any basic non-string type can be invalidated by replacing with a string
+            if header["schema"]["type"] not in ["string", "array", "object"]:
+                result.add(header["name"])
+                continue
+            # enums, strings and arrays with boundaries can be invalidated
             if set(schema.keys()).intersection(
                 {
                     "enum",
-                    "minimum",
-                    "maximum",
-                    "exclusiveMinimum",
-                    "exclusiveMaximum",
                     "minLength",
                     "maxLength",
                     "minItems",
@@ -281,8 +323,20 @@ class RequestData:
                 }
             ):
                 result.add(header["name"])
+                continue
+            # required headers can be omitted to invalidate a request
             if header["required"]:
                 result.add(header["name"])
+                continue
+            # an array of basic non-string type can be invalidated by replacing the
+            # items in the array with strings
+            if schema["type"] == "array" and schema["items"]["type"] not in [
+                "string",
+                "array",
+                "object",
+            ]:
+                result.add(header["name"])
+                continue
         return result
 
     def get_required_properties_dict(self) -> Dict[str, Any]:
