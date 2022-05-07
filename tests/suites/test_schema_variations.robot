@@ -14,9 +14,9 @@ Test Get Request Data For Schema With allOf
     ${dict}=    Create Dictionary
     ${list}=    Create List
     ${list_of_dict}=    Create List    ${dict}
-    Length Should Be    ${request_data.dto.isan}    32
-    Length Should Be    ${request_data.dto.title}    32
-    Length Should Be    ${request_data.dto.published}    32
+    Length Should Be    ${request_data.dto.isan}    36
+    Length Should Be    ${request_data.dto.title}    36
+    Length Should Be    ${request_data.dto.published}    10
     Should Be Equal    ${request_data.dto.tags}    ${list_of_dict}
     Length Should Be    ${request_data.dto_schema}    4
     Length Should Be    ${request_data.dto_schema.get("properties")}    4

@@ -48,7 +48,7 @@ Test Get Invalidated Parameters For Invalid Propery Default Response
     ...    status_code=422
     ...    request_data=${request_data}
     Set Test Variable    ${secret_code}    ${invalidated[1].get("secret-code")}
-    Length Should Be    ${secret_code}    32
+    Length Should Be    ${secret_code}    36
 
 Test Get Invalidated Parameters For PropertyValueConstraint
     ${request_data}=    Get Request Data    endpoint=/secret_message    method=get

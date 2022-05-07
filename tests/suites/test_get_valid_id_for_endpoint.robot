@@ -20,7 +20,7 @@ Test Get Valid Id For Endpoint Raises For Endpoint With No Post Operation And No
 
 Test Get Valid Id For Endpoint Returns Id For Resource Created By Post Operation
     ${id}=    Get Valid Id For Endpoint    endpoint=/wagegroups/{wagegroup_id}    method=get
-    Length Should Be    ${id}    32
+    Length Should Be    ${id}    36
 
 Test Get Valid Id For Endpoint Returns Random Id From Array Endpoint With No Post Operation
     ${url}=    Get Valid Url    endpoint=/employees    method=post
