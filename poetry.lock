@@ -148,6 +148,17 @@ optional = false
 python-versions = ">= 2.7, != 3.0.*, != 3.1.*, != 3.2.*, != 3.3.*, != 3.4.*"
 
 [[package]]
+name = "faker"
+version = "13.7.0"
+description = "Faker is a Python package that generates fake data for you."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+python-dateutil = ">=2.4"
+
+[[package]]
 name = "fastapi"
 version = "0.75.2"
 description = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
@@ -444,6 +455,17 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "python-dateutil"
+version = "2.8.2"
+description = "Extensions to the standard Python datetime module"
+category = "main"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
+
+[package.dependencies]
+six = ">=1.5"
+
+[[package]]
 name = "pyyaml"
 version = "6.0"
 description = "YAML parser and emitter for Python"
@@ -502,6 +524,14 @@ colorama = ">=0.4.3"
 pathspec = "0.9.0"
 robotframework = ">=4.0"
 toml = ">=0.10.2"
+
+[[package]]
+name = "rstr"
+version = "3.1.0"
+description = "Generate random strings in Python"
+category = "main"
+optional = false
+python-versions = ">=3.7"
 
 [[package]]
 name = "ruamel.yaml"
@@ -659,7 +689,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "e338a0d6bdd7efc127d60ed11643b3eb07c97f5326650807cf4fba617fa600ad"
+content-hash = "83d9aae53e6e3b6af0dd4ab4f128293fad8b603ce75d098caf58cf466d647cba"
 
 [metadata.files]
 anyio = [
@@ -760,6 +790,10 @@ dictpath = [
     {file = "dictpath-0.1.3-py2-none-any.whl", hash = "sha256:225248e3c1e7c375495d5da5c390cbf3490f56ee42c151df733e5b2df6b521b5"},
     {file = "dictpath-0.1.3-py3-none-any.whl", hash = "sha256:d5212361d1fb93909cff715f6e0404e17752cf7a48df3e140639e529a027c437"},
     {file = "dictpath-0.1.3.tar.gz", hash = "sha256:751cde3b76b176d25f961b90c423a11a4d5ede9bd09ab0d64a85abb738c190d8"},
+]
+faker = [
+    {file = "Faker-13.7.0-py3-none-any.whl", hash = "sha256:b1903db92175d78051858128ada397c7dc76f376f6967975419da232b3ebd429"},
+    {file = "Faker-13.7.0.tar.gz", hash = "sha256:0301ace8365d98f3d0bf6e9a40200c8548e845d3812402ae1daf589effe3fb01"},
 ]
 fastapi = [
     {file = "fastapi-0.75.2-py3-none-any.whl", hash = "sha256:a70d31f4249b6b42dbe267667d22f83af645b2d857876c97f83ca9573215784f"},
@@ -934,6 +968,10 @@ pyrsistent = [
     {file = "pyrsistent-0.18.0-cp39-cp39-win_amd64.whl", hash = "sha256:404e1f1d254d314d55adb8d87f4f465c8693d6f902f67eb6ef5b4526dc58e6ea"},
     {file = "pyrsistent-0.18.0.tar.gz", hash = "sha256:773c781216f8c2900b42a7b638d5b517bb134ae1acbebe4d1e8f1f41ea60eb4b"},
 ]
+python-dateutil = [
+    {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
+    {file = "python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
+]
 pyyaml = [
     {file = "PyYAML-6.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:d4db7c7aef085872ef65a8fd7d6d09a14ae91f691dec3e87ee5ee0539d516f53"},
     {file = "PyYAML-6.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:9df7ed3b3d2e0ecfe09e14741b857df43adb5a3ddadc919a2d94fbdf78fea53c"},
@@ -984,6 +1022,10 @@ robotframework-stacktrace = [
 robotframework-tidy = [
     {file = "robotframework-tidy-1.6.2.tar.gz", hash = "sha256:f851c7e0e473820a2e82bdfd322b0d72c7e25043e5a58af48da636af9d23f2db"},
     {file = "robotframework_tidy-1.6.2-py3-none-any.whl", hash = "sha256:61b82ff7cc4ada4a5a69f560326b194917c7e6a31ab1929210b5ad01c0014a82"},
+]
+rstr = [
+    {file = "rstr-3.1.0-py2.py3-none-any.whl", hash = "sha256:21a96f2fa9021d0604f132dc5c48ddabbf170bf63b3d3cadb3f07c897c1ae3c1"},
+    {file = "rstr-3.1.0.tar.gz", hash = "sha256:d46eff542a1a1ddcf3d5d23a2cd4cbd476d3298f5e73fe7741963e5c6a90a5cd"},
 ]
 "ruamel.yaml" = [
     {file = "ruamel.yaml-0.17.17-py3-none-any.whl", hash = "sha256:9af3ec5d7f8065582f3aa841305465025d0afd26c5fb54e15b964e11838fc74f"},

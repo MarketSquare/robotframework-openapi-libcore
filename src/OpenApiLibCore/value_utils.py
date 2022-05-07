@@ -1,12 +1,31 @@
 """Utility module with functions to handle OpenAPI value types and restrictions."""
+import base64
+import datetime
 from logging import getLogger
-from random import choice, getrandbits, randint, uniform
-from typing import Any, Dict, List, Optional
-from uuid import uuid4
+from random import choice, randint, uniform
+from typing import Any, Dict, List, Optional, Union
 
-IGNORE = object()
+import faker
+import rstr
 
 logger = getLogger(__name__)
+fake = faker.Faker()
+
+IGNORE = object()
+FAKE_GENERATORS = {
+    "date": fake.date,
+    "date-time": fake.date_time,
+    "datetime": fake.date_time,
+    "password": fake.password,
+    "binary": fake.binary,
+    "email": fake.safe_email,
+    "uuid": fake.uuid4,
+    "uri": fake.uri,
+    "url": fake.url,
+    "hostname": fake.hostname,
+    "ipv4": fake.ipv4,
+    "ipv6": fake.ipv6,
+}
 
 
 def get_valid_value(value_schema: Dict[str, Any]) -> Any:
@@ -17,7 +36,7 @@ def get_valid_value(value_schema: Dict[str, Any]) -> Any:
     value_type = value_schema["type"]
 
     if value_type == "boolean":
-        return bool(getrandbits(1))
+        return fake.boolean()
     if value_type == "integer":
         return get_random_int(value_schema=value_schema)
     if value_type == "number":
@@ -66,9 +85,10 @@ def get_invalid_value(
     if value_type == "string":
         # since int / float / bool can always be cast to sting, change
         # the string to a nested object
-        return [{"invalid": [None]}]
+        # an array gets exploded in query strings, "null" is then often invalid
+        return [{"invalid": [None, False]}, "null", None, True]
     logger.debug(f"property type changed from {value_type} to random string")
-    return uuid4().hex
+    return fake.uuid4()
 
 
 def get_random_int(value_schema: Dict[str, Any]) -> int:
@@ -123,18 +143,36 @@ def get_random_float(value_schema: Dict[str, Any]) -> float:
     return uniform(minimum, maximum)
 
 
-def get_random_string(value_schema: Dict[str, Any]) -> str:
+def get_random_string(value_schema: Dict[str, Any]) -> Union[bytes, str]:
     """Generate a random string within the min/max length in the schema, if specified."""
-    # TODO: byte, binary, date, date-time based on "format"
+    # if a pattern is provided, format and min/max length can be ignored
+    if pattern := value_schema.get("pattern"):
+        return rstr.xeger(pattern)
     minimum = value_schema.get("minLength", 0)
     maximum = value_schema.get("maxLength", 36)
     if minimum > maximum:
         maximum = minimum
-    value = uuid4().hex
+    format_ = value_schema.get("format", "uuid")
+    # byte is a special case due to the required encoding
+    if format_ == "byte":
+        data = fake.uuid4()
+        return base64.b64encode(data.encode("utf-8"))
+    value = fake_string(format_=format_)
     while len(value) < minimum:
-        value = value + uuid4().hex
+        value = value + fake.uuid4()
     if len(value) > maximum:
         value = value[:maximum]
+    return value
+
+
+def fake_string(format_: str) -> str:
+    """
+    Generate a random string based on the provided format if the format is supported.
+    """
+    fake_generator = FAKE_GENERATORS.get(format_, fake.uuid4)
+    value = fake_generator()
+    if isinstance(value, datetime.datetime):
+        return value.strftime("%Y-%m-%dT%H:%M:%SZ")
     return value
 
 
