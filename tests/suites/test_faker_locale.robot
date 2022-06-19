@@ -6,8 +6,10 @@ Library         OpenApiLibCore
 ...             faker_locale=zh_CN
 Variables       ${root}/tests/variables.py
 
+
 *** Variables ***
 ${origin}       http://localhost:8000
+
 
 *** Test Cases ***
 Test Get Request Data For Schema With allOf

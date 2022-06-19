@@ -6,8 +6,10 @@ Library         OpenApiLibCore
 ...             mappings_path=${root}/tests/user_implemented/custom_user_mappings.py
 Variables       ${root}/tests/variables.py
 
+
 *** Variables ***
 ${origin}=      http://localhost:8000
+
 
 *** Test Cases ***
 Test Get Request Data For Invalid Method On Endpoint

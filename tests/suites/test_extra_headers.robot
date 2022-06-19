@@ -8,8 +8,10 @@ Library         OpenApiLibCore
 ...             security_token=secret
 ...             extra_headers=${EXTRA_HEADERS}
 
+
 *** Variables ***
 ${origin}=      http://localhost:8000
+
 
 *** Test Cases ***
 Test Authorized Request With Security Token And Extra Headers

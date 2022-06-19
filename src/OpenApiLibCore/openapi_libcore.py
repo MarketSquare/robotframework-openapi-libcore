@@ -148,7 +148,7 @@ from OpenApiLibCore.dto_base import (
     UniquePropertyValueConstraint,
 )
 from OpenApiLibCore.dto_utils import DefaultDto, get_dto_class
-from OpenApiLibCore.value_utils import IGNORE, FAKE
+from OpenApiLibCore.value_utils import FAKE, IGNORE
 
 run_keyword = BuiltIn().run_keyword
 
@@ -493,7 +493,6 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             self.get_dto_class = get_dto_class(mappings_module_name="no_mapping")
         if faker_locale:
             FAKE.set_locale(locale=faker_locale)
-
 
     @property
     def openapi_spec(self):

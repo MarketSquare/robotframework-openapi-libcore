@@ -5,8 +5,10 @@ Library         OpenApiLibCore
 ...             base_path=${EMPTY}
 Variables       ${root}/tests/variables.py
 
+
 *** Variables ***
 ${origin}       http://localhost:8000
+
 
 *** Test Cases ***
 Test Get Request Data For Schema With allOf

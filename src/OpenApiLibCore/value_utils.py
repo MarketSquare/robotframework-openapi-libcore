@@ -15,6 +15,7 @@ IGNORE = object()
 
 class LocalizedFaker:
     """Class to support setting a locale post-init."""
+
     def __init__(self):
         self.fake = faker.Faker()
 

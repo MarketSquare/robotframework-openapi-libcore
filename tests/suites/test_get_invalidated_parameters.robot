@@ -7,8 +7,10 @@ Library         OpenApiLibCore
 Library         ../../.venv/lib/site-packages/robot/libraries/String.py
 Variables       ${root}/tests/variables.py
 
+
 *** Variables ***
 ${origin}=      http://localhost:8000
+
 
 *** Test Cases ***
 Test Get Invalidated Parameters Raises For Empty Parameters List
