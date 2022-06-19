@@ -66,11 +66,10 @@ Validates OK as OpenAPI 3.0.2!
 You'll have to change the url or file reference to the location of the openapi
 document for your API.
 
-> Note: if you encounter a `Recursion reached limit ...` error there is a circular
-reference somewhere in your OpenAPI document.
-Although recursion is technically allowed under the OAS, tool support is limited
+> Note: Although recursion is technically allowed under the OAS, tool support is limited
 and changing the API to not use recursion is recommended.
-At present OpenApiLibCore does not support recursion in the OpenAPI document.
+At present OpenApiLibCore has limited support for parsing OpenAPI documents with
+recursion in them.
 
 If the openapi document passes this validation, the next step is trying to do a test
 run with a minimal test suite.
@@ -139,7 +138,7 @@ from uuid import uuid4
 
 from openapi_core import create_spec
 from openapi_core.validation.response.validators import ResponseValidator
-from prance import ResolvingParser
+from prance import ResolvingParser, ValidationError
 from prance.util.url import ResolutionError
 from requests import Response, Session
 from requests.auth import AuthBase, HTTPBasicAuth
@@ -319,7 +318,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
     for an introduction.
     """
 
-    def __init__(  # pylint: disable=too-many-arguments, too-many-locals
+    def __init__(  # pylint: disable=too-many-arguments, too-many-locals, dangerous-default-value
         self,
         source: str,
         origin: str = "",
@@ -331,6 +330,8 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         auth: Optional[AuthBase] = None,
         extra_headers: Optional[Dict[str, str]] = None,
         invalid_property_default_response: int = 422,
+        recursion_limit: int = 1,
+        recursion_default: Any = {},
     ) -> None:
         # region: docstring
         """
@@ -369,13 +370,37 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         The default response code for requests with a JSON body that does not comply with
         the schema. Example: a value outside the specified range or a string value for a
         property defined as integer in the schema.
+
+        === recursion_limit ===
+        The recursion depth to which to fully parse recursive references before the
+        `recursion_default` is used to end the recursion.
+
+        === recursion_default ===
+        The value that is used instead of the referenced schema when the
+        `recursion_limit` has been reached. The default `{}` represents an empty
+        object in JSON. Depending on schema definitions, this may cause schema
+        validation errors. If this is the case, `None` (`${NONE}` in Robot Framework)
+        can be tried as an alternative.
         """
         # endregion
         try:
-            parser = ResolvingParser(source, backend="openapi-spec-validator")
+
+            def recursion_limit_handler(limit, refstring, recursions):
+                return recursion_default
+
+            parser = ResolvingParser(
+                source,
+                backend="openapi-spec-validator",
+                recursion_limit=recursion_limit,
+                recursion_limit_handler=recursion_limit_handler,
+            )
         except ResolutionError as exception:
             BuiltIn().fatal_error(
-                f"Exception while trying to load openapi spec from source: {exception}"
+                f"ResolutionError while trying to load openapi spec: {exception}"
+            )
+        except ValidationError as exception:
+            BuiltIn().fatal_error(
+                f"ValidationError while trying to load openapi spec: {exception}"
             )
         if (openapi_spec := parser.specification) is None:  # pragma: no cover
             BuiltIn().fatal_error(
@@ -701,11 +726,10 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 value = choice(*constrained_values)
                 if value is IGNORE:
                     continue
-                result[parameter_name] = str(value)
+                result[parameter_name] = value
                 continue
             value = value_utils.get_valid_value(parameter_schema)
-            # By the http standard, query string and header values must be strings
-            result[parameter_name] = str(value)
+            result[parameter_name] = value
         return result
 
     @keyword
@@ -966,7 +990,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         if parameter_to_invalidate in params.keys():
             params[parameter_to_invalidate] = invalid_value
         else:
-            headers[parameter_to_invalidate] = str(invalid_value)
+            headers[parameter_to_invalidate] = invalid_value
         return params, headers
 
     @staticmethod
@@ -1119,6 +1143,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         if self.security_token and not self.auth:
             security_header = {"Authorization": self.security_token}
             headers.update(security_header)
+        headers = {k: str(v) for k, v in headers.items()}
         response = self.session.request(
             url=url,
             method=method,

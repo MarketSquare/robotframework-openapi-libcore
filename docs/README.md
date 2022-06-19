@@ -67,11 +67,10 @@ Validates OK as OpenAPI 3.0.2!
 You'll have to change the url or file reference to the location of the openapi
 document for your API.
 
-> Note: if you encounter a `Recursion reached limit ...` error there is a circular
-reference somewhere in your OpenAPI document.
-Although recursion is technically allowed under the OAS, tool support is limited
+> Note: Although recursion is technically allowed under the OAS, tool support is limited
 and changing the API to not use recursion is recommended.
-At present OpenApiLibCore does not support recursion in the OpenAPI document.
+At present OpenApiLibCore has limited support for parsing OpenAPI documents with
+recursion in them.
 
 If the openapi document passes this validation, the next step is trying to do a test
 run with a minimal test suite.
