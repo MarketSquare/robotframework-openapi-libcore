@@ -1,12 +1,86 @@
 """Utility module with functions to handle OpenAPI value types and restrictions."""
+import base64
+import datetime
 from logging import getLogger
-from random import choice, getrandbits, randint, uniform
-from typing import Any, Dict, List, Optional
-from uuid import uuid4
+from random import choice, randint, uniform
+from typing import Any, Dict, List, Optional, Union
+
+import faker
+import rstr
+
+logger = getLogger(__name__)
 
 IGNORE = object()
 
-logger = getLogger(__name__)
+
+class LocalizedFaker:
+    """Class to support setting a locale post-init."""
+
+    def __init__(self):
+        self.fake = faker.Faker()
+
+    def set_locale(self, locale: Union[str, List[str]]) -> None:
+        """Update the fake attribute with a Faker instance with the provided locale."""
+        self.fake = faker.Faker(locale)
+
+    @property
+    def date(self):
+        return self.fake.date
+
+    @property
+    def date_time(self):
+        return self.fake.date_time
+
+    @property
+    def password(self):
+        return self.fake.password
+
+    @property
+    def binary(self):
+        return self.fake.binary
+
+    @property
+    def email(self):
+        return self.fake.safe_email
+
+    @property
+    def uuid(self):
+        return self.fake.uuid4
+
+    @property
+    def uri(self):
+        return self.fake.uri
+
+    @property
+    def url(self):
+        return self.fake.url
+
+    @property
+    def hostname(self):
+        return self.fake.hostname
+
+    @property
+    def ipv4(self):
+        return self.fake.ipv4
+
+    @property
+    def ipv6(self):
+        return self.fake.ipv6
+
+    @property
+    def name(self):
+        return self.fake.name
+
+    @property
+    def text(self):
+        return self.fake.text
+
+    @property
+    def description(self):
+        return self.fake.text
+
+
+FAKE = LocalizedFaker()
 
 
 def get_valid_value(value_schema: Dict[str, Any]) -> Any:
@@ -17,7 +91,7 @@ def get_valid_value(value_schema: Dict[str, Any]) -> Any:
     value_type = value_schema["type"]
 
     if value_type == "boolean":
-        return bool(getrandbits(1))
+        return FAKE.fake.boolean()
     if value_type == "integer":
         return get_random_int(value_schema=value_schema)
     if value_type == "number":
@@ -66,9 +140,10 @@ def get_invalid_value(
     if value_type == "string":
         # since int / float / bool can always be cast to sting, change
         # the string to a nested object
-        return [{"invalid": [None]}]
+        # an array gets exploded in query strings, "null" is then often invalid
+        return [{"invalid": [None, False]}, "null", None, True]
     logger.debug(f"property type changed from {value_type} to random string")
-    return uuid4().hex
+    return FAKE.fake.uuid4()
 
 
 def get_random_int(value_schema: Dict[str, Any]) -> int:
@@ -123,18 +198,39 @@ def get_random_float(value_schema: Dict[str, Any]) -> float:
     return uniform(minimum, maximum)
 
 
-def get_random_string(value_schema: Dict[str, Any]) -> str:
+def get_random_string(value_schema: Dict[str, Any]) -> Union[bytes, str]:
     """Generate a random string within the min/max length in the schema, if specified."""
-    # TODO: byte, binary, date, date-time based on "format"
+    # if a pattern is provided, format and min/max length can be ignored
+    if pattern := value_schema.get("pattern"):
+        return rstr.xeger(pattern)
     minimum = value_schema.get("minLength", 0)
     maximum = value_schema.get("maxLength", 36)
     if minimum > maximum:
         maximum = minimum
-    value = uuid4().hex
+    format_ = value_schema.get("format", "uuid")
+    # byte is a special case due to the required encoding
+    if format_ == "byte":
+        data = FAKE.fake.uuid4()
+        return base64.b64encode(data.encode("utf-8"))
+    value = fake_string(format_=format_)
     while len(value) < minimum:
-        value = value + uuid4().hex
+        # use fake.name() to ensure the returned string uses the provided locale
+        value = value + FAKE.fake.name()
     if len(value) > maximum:
         value = value[:maximum]
+    return value
+
+
+def fake_string(format_: str) -> str:
+    """
+    Generate a random string based on the provided format if the format is supported.
+    """
+    # format names may contain -, which is invalid in Python naming
+    format_ = format_.replace("-", "_")
+    fake_generator = getattr(FAKE, format_, FAKE.fake.uuid4)
+    value = fake_generator()
+    if isinstance(value, datetime.datetime):
+        return value.strftime("%Y-%m-%dT%H:%M:%SZ")
     return value
 
 

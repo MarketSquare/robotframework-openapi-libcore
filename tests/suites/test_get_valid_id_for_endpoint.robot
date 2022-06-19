@@ -6,8 +6,10 @@ Library         OpenApiLibCore
 ...             mappings_path=${root}/tests/user_implemented/custom_user_mappings.py
 Variables       ${root}/tests/variables.py
 
+
 *** Variables ***
 ${origin}=      http://localhost:8000
+
 
 *** Test Cases ***
 Test Get Valid Id For Endpoint Raises For Endpoint Without Id In Path
@@ -20,7 +22,7 @@ Test Get Valid Id For Endpoint Raises For Endpoint With No Post Operation And No
 
 Test Get Valid Id For Endpoint Returns Id For Resource Created By Post Operation
     ${id}=    Get Valid Id For Endpoint    endpoint=/wagegroups/{wagegroup_id}    method=get
-    Length Should Be    ${id}    32
+    Length Should Be    ${id}    36
 
 Test Get Valid Id For Endpoint Returns Random Id From Array Endpoint With No Post Operation
     ${url}=    Get Valid Url    endpoint=/employees    method=post

@@ -6,8 +6,10 @@ Library         OpenApiLibCore
 ...             mappings_path=${root}/tests/user_implemented/custom_user_mappings.py
 Variables       ${root}/tests/variables.py
 
+
 *** Variables ***
 ${origin}=      http://localhost:8000
+
 
 *** Test Cases ***
 Test Get Request Data For Invalid Method On Endpoint
@@ -26,8 +28,8 @@ Test Get Request Data For Endpoint With RequestBody
     ${list}=    Create List
     ${birthdays}=    Create List    1970-07-07    1980-08-08    1990-09-09
     ${parttime_days}=    Create List    Monday    Tuesday    Wednesday    Thursday    Friday
-    Length Should Be    ${request_data.dto.name}    32
-    Length Should Be    ${request_data.dto.wagegroup_id}    32
+    Length Should Be    ${request_data.dto.name}    36
+    Length Should Be    ${request_data.dto.wagegroup_id}    36
     Should Contain    ${birthdays}    ${request_data.dto.date_of_birth}
     Should Contain    ${parttime_days}    ${request_data.dto.parttime_day}
     Should Not Be Empty    ${request_data.dto_schema}

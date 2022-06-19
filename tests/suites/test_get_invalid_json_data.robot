@@ -7,8 +7,10 @@ Library         OpenApiLibCore
 Library         ../../.venv/lib/site-packages/robot/libraries/OperatingSystem.py
 Variables       ${root}/tests/variables.py
 
+
 *** Variables ***
 ${origin}=      http://localhost:8000
+
 
 *** Test Cases ***
 Test Get Invalid Json Data Raises If Data Cannot Be Invalidated

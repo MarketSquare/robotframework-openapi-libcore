@@ -64,6 +64,7 @@ components:
         title:
           description: The media title.
           type: string
+          format: name
         published:
           description: The publication date of the work.
           type: string
