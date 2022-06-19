@@ -31,7 +31,24 @@ Test Has Optional Headers
     ${request_data}=    Get Request Data    endpoint=/    method=get
     Should Be Equal    ${request_data.has_optional_headers}    ${TRUE}
 
+Test Params That Can Be Invalidated
+    ${request_data}=    Get Request Data    endpoint=/available_employees    method=get
+    Set Test Variable    ${params}    ${request_data.params_that_can_be_invalidated}
+    Should Contain    ${params}    weekday
+
+    ${request_data}=    Get Request Data    endpoint=/energy_label/{zipcode}/{home_number}    method=get
+    Set Test Variable    ${params}    ${request_data.params_that_can_be_invalidated}
+    Should Contain    ${params}    extension
+
+    ${request_data}=    Get Request Data    endpoint=/events/    method=get
+    Set Test Variable    ${params}    ${request_data.params_that_can_be_invalidated}
+    Should Be Empty    ${params}
+
 Test Headers That Can Be Invalidated
+    ${request_data}=    Get Request Data    endpoint=/    method=get
+    Set Test Variable    ${headers}    ${request_data.headers_that_can_be_invalidated}
+    Should Be Empty    ${headers}
+
     ${request_data}=    Get Request Data    endpoint=/secret_message    method=get
     Set Test Variable    ${headers}    ${request_data.headers_that_can_be_invalidated}
     Should Contain    ${headers}    secret-code
