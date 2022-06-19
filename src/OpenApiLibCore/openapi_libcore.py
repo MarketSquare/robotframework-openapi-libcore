@@ -1,4 +1,3 @@
-# region: docstring
 """
 # OpenApiLibCore for Robot Framework®
 
@@ -69,7 +68,7 @@ document for your API.
 > Note: Although recursion is technically allowed under the OAS, tool support is limited
 and changing the API to not use recursion is recommended.
 At present OpenApiLibCore has limited support for parsing OpenAPI documents with
-recursion in them.
+recursion in them. See the `recursion_limit` and `recursion_default` parameters.
 
 If the openapi document passes this validation, the next step is trying to do a test
 run with a minimal test suite.
@@ -110,19 +109,12 @@ Details about the `mappings_path` variable usage can be found
 
 There are currently a number of limitations to supported API structures, supported
 data types and properties. The following list details the most important ones:
-- Only JSON request and response bodies are currently supported.
+- Only JSON request and response bodies are supported.
 - The unique identifier for a resource as used in the `paths` section of the
     openapi document is expected to be the `id` property on a resource of that type.
-- Limited support for query strings and headers.
-- Limited support for authentication
-    - `username` and `password` can be passed as parameters to use Basic Authentication
-    - A [requests AuthBase instance](https://docs.python-requests.org/en/latest/api/#authentication)
-        can be passed and it will be used as provided.
-    - No support for per-endpoint authorization levels (just simple 401 validation).
-- byte, binary, date, date-time string formats not supported yet.
+- No support for per-endpoint authorization levels.
 
 """
-# endregion
 
 import json as _json
 import sys
@@ -156,7 +148,7 @@ from OpenApiLibCore.dto_base import (
     UniquePropertyValueConstraint,
 )
 from OpenApiLibCore.dto_utils import DefaultDto, get_dto_class
-from OpenApiLibCore.value_utils import IGNORE
+from OpenApiLibCore.value_utils import IGNORE, FAKE
 
 run_keyword = BuiltIn().run_keyword
 
@@ -386,6 +378,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         invalid_property_default_response: int = 422,
         recursion_limit: int = 1,
         recursion_default: Any = {},
+        faker_locale: Optional[Union[str, List[str]]] = None,
     ) -> None:
         # region: docstring
         """
@@ -435,6 +428,10 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         object in JSON. Depending on schema definitions, this may cause schema
         validation errors. If this is the case, `None` (`${NONE}` in Robot Framework)
         can be tried as an alternative.
+
+        === faker_locale ===
+        A locale string or list of locale strings to pass to Faker to be used in
+        generation of string data for supported format types.
         """
         # endregion
         try:
@@ -494,6 +491,9 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             sys.path.pop()
         else:
             self.get_dto_class = get_dto_class(mappings_module_name="no_mapping")
+        if faker_locale:
+            FAKE.set_locale(locale=faker_locale)
+
 
     @property
     def openapi_spec(self):

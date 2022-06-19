@@ -9,23 +9,77 @@ import faker
 import rstr
 
 logger = getLogger(__name__)
-fake = faker.Faker()
 
 IGNORE = object()
-FAKE_GENERATORS = {
-    "date": fake.date,
-    "date-time": fake.date_time,
-    "datetime": fake.date_time,
-    "password": fake.password,
-    "binary": fake.binary,
-    "email": fake.safe_email,
-    "uuid": fake.uuid4,
-    "uri": fake.uri,
-    "url": fake.url,
-    "hostname": fake.hostname,
-    "ipv4": fake.ipv4,
-    "ipv6": fake.ipv6,
-}
+
+
+class LocalizedFaker:
+    """Class to support setting a locale post-init."""
+    def __init__(self):
+        self.fake = faker.Faker()
+
+    def set_locale(self, locale: Union[str, List[str]]) -> None:
+        """Update the fake attribute with a Faker instance with the provided locale."""
+        self.fake = faker.Faker(locale)
+
+    @property
+    def date(self):
+        return self.fake.date
+
+    @property
+    def date_time(self):
+        return self.fake.date_time
+
+    @property
+    def password(self):
+        return self.fake.password
+
+    @property
+    def binary(self):
+        return self.fake.binary
+
+    @property
+    def email(self):
+        return self.fake.safe_email
+
+    @property
+    def uuid(self):
+        return self.fake.uuid4
+
+    @property
+    def uri(self):
+        return self.fake.uri
+
+    @property
+    def url(self):
+        return self.fake.url
+
+    @property
+    def hostname(self):
+        return self.fake.hostname
+
+    @property
+    def ipv4(self):
+        return self.fake.ipv4
+
+    @property
+    def ipv6(self):
+        return self.fake.ipv6
+
+    @property
+    def name(self):
+        return self.fake.name
+
+    @property
+    def text(self):
+        return self.fake.text
+
+    @property
+    def description(self):
+        return self.fake.text
+
+
+FAKE = LocalizedFaker()
 
 
 def get_valid_value(value_schema: Dict[str, Any]) -> Any:
@@ -36,7 +90,7 @@ def get_valid_value(value_schema: Dict[str, Any]) -> Any:
     value_type = value_schema["type"]
 
     if value_type == "boolean":
-        return fake.boolean()
+        return FAKE.fake.boolean()
     if value_type == "integer":
         return get_random_int(value_schema=value_schema)
     if value_type == "number":
@@ -88,7 +142,7 @@ def get_invalid_value(
         # an array gets exploded in query strings, "null" is then often invalid
         return [{"invalid": [None, False]}, "null", None, True]
     logger.debug(f"property type changed from {value_type} to random string")
-    return fake.uuid4()
+    return FAKE.fake.uuid4()
 
 
 def get_random_int(value_schema: Dict[str, Any]) -> int:
@@ -155,11 +209,12 @@ def get_random_string(value_schema: Dict[str, Any]) -> Union[bytes, str]:
     format_ = value_schema.get("format", "uuid")
     # byte is a special case due to the required encoding
     if format_ == "byte":
-        data = fake.uuid4()
+        data = FAKE.fake.uuid4()
         return base64.b64encode(data.encode("utf-8"))
     value = fake_string(format_=format_)
     while len(value) < minimum:
-        value = value + fake.uuid4()
+        # use fake.name() to ensure the returned string uses the provided locale
+        value = value + FAKE.fake.name()
     if len(value) > maximum:
         value = value[:maximum]
     return value
@@ -169,7 +224,9 @@ def fake_string(format_: str) -> str:
     """
     Generate a random string based on the provided format if the format is supported.
     """
-    fake_generator = FAKE_GENERATORS.get(format_, fake.uuid4)
+    # format names may contain -, which is invalid in Python naming
+    format_ = format_.replace("-", "_")
+    fake_generator = getattr(FAKE, format_, FAKE.fake.uuid4)
     value = fake_generator()
     if isinstance(value, datetime.datetime):
         return value.strftime("%Y-%m-%dT%H:%M:%SZ")
