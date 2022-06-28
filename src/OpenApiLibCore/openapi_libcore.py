@@ -405,7 +405,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         The token to be used for token based security using the ``Authorization`` header.
 
         === auth ===
-        A [https://docs.python-requests.org/en/latest/api/#authentication | requests AuthBase instance]
+        A [https://requests.readthedocs.io/en/latest/api/#authentication | requests AuthBase instance]
         to be used for authentication instead of the ``username`` and ``password``.
 
         === extra_headers ===
