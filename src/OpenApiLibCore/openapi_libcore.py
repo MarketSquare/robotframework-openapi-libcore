@@ -374,6 +374,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         password: str = "",
         security_token: str = "",
         auth: Optional[AuthBase] = None,
+        cert: Optional[Union[str, Tuple[str, str]]] = None,
         extra_headers: Optional[Dict[str, str]] = None,
         invalid_property_default_response: int = 422,
         recursion_limit: int = 1,
@@ -407,6 +408,10 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         === auth ===
         A [https://requests.readthedocs.io/en/latest/api/#authentication | requests AuthBase instance]
         to be used for authentication instead of the ``username`` and ``password``.
+
+        === cert ===
+        The SSL certificate to use with all requests.
+        If string: the path to ssl client cert file (.pem). If tuple, ('cert', 'key') pair.
 
         === extra_headers ===
         A dictionary with extra / custom headers that will be send with every request.
@@ -472,6 +477,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         self.auth = auth
         if username and password:
             self.auth = HTTPBasicAuth(username, password)
+        self.cert = cert
         self.extra_headers = extra_headers
         self.invalid_property_default_response = invalid_property_default_response
         if mappings_path and str(mappings_path) != ".":
@@ -1204,6 +1210,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             headers=headers,
             json=json_data,
             auth=self.auth,
+            cert=self.cert,
             verify=False,
         )
         logger.debug(f"Response text: {response.text}")
