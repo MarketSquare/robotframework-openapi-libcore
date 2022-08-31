@@ -757,13 +757,31 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
 
         endpoint_parts = endpoint.split("/")
         spec_endpoints: List[str] = {**self.openapi_spec}["paths"].keys()
+
+        candidates: List[str] = []
+
         for spec_endpoint in spec_endpoints:
             spec_endpoint_parts = spec_endpoint.split("/")
             if match_parts(endpoint_parts, spec_endpoint_parts):
-                return spec_endpoint
-        raise ValueError(
-            f"{endpoint} not found in paths section of the OpenAPI document."
-        )
+                candidates.append(spec_endpoint)
+
+        if not candidates:
+            raise ValueError(
+                f"{endpoint} not found in paths section of the OpenAPI document."
+            )
+
+        if len(candidates) == 1:
+            return candidates[0]
+        # Multiple matches can happen in APIs with overloaded endpoints, e.g.
+        # /users/me
+        # /users/${user_id}
+        # In this case, find the closest (or exact) match
+        exact_match = [c for c in candidates if c == endpoint]
+        if exact_match:
+            return exact_match[0]
+        # TODO: Implement a decision mechanism when real-world examples become available
+        # In the face of ambiguity, refuse the temptation to guess.
+        raise ValueError(f"{endpoint} matched to multiple paths: {candidates}")
 
     @staticmethod
     def get_parameter_data(
