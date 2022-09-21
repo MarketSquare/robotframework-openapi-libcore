@@ -793,6 +793,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         for parameter in parameters:
             parameter_name = parameter["name"]
             parameter_schema = parameter["schema"]
+            parameter_schema = resolve_schema(parameter_schema)
             relations = [
                 r for r in parameter_relations if r.property_name == parameter_name
             ]
@@ -864,6 +865,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
 
         for property_name in schema.get("properties", []):
             value_schema = schema["properties"][property_name]
+            value_schema = resolve_schema(value_schema)
             property_type = value_schema["type"]
             if constrained_values := get_constrained_values(property_name):
                 # do not add properties that are configured to be ignored
