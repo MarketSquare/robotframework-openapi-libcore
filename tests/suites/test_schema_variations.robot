@@ -1,8 +1,8 @@
 *** Settings ***
 Library         OpenApiLibCore
-...             source=${root}/tests/files/schema_with_allof.yaml
-...             origin=${origin}
-...             base_path=${EMPTY}
+...                 source=${root}/tests/files/schema_with_allof.yaml
+...                 origin=${origin}
+...                 base_path=${EMPTY}
 Variables       ${root}/tests/variables.py
 
 

@@ -1,9 +1,9 @@
 *** Settings ***
 Library         OpenApiLibCore
-...             source=${root}/tests/files/schema_with_allof.yaml
-...             origin=${origin}
-...             base_path=${EMPTY}
-...             faker_locale=zh_CN
+...                 source=${root}/tests/files/schema_with_allof.yaml
+...                 origin=${origin}
+...                 base_path=${EMPTY}
+...                 faker_locale=zh_CN
 Variables       ${root}/tests/variables.py
 
 

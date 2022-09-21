@@ -1,12 +1,12 @@
 *** Settings ***
 Variables       ${root}/tests/variables.py
 Library         OpenApiLibCore
-...             source=${origin}/openapi.json
-...             origin=${origin}
-...             base_path=${EMPTY}
-...             mappings_path=${root}/tests/user_implemented/custom_user_mappings.py
-...             security_token=secret
-...             extra_headers=${EXTRA_HEADERS}
+...                 source=${origin}/openapi.json
+...                 origin=${origin}
+...                 base_path=${EMPTY}
+...                 mappings_path=${root}/tests/user_implemented/custom_user_mappings.py
+...                 security_token=secret
+...                 extra_headers=${EXTRA_HEADERS}
 
 
 *** Variables ***
