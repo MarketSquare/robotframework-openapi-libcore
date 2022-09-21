@@ -466,7 +466,6 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         validation_spec = create_spec(self.openapi_spec)
         self.response_validator = ResponseValidator(
             spec=validation_spec,
-            base_url=base_path,
         )
         self.session = Session()
         self.origin = origin
