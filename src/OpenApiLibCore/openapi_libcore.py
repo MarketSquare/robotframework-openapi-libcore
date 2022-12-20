@@ -638,6 +638,13 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         if isinstance(response_data, list):
             valid_ids: List[str] = [item["id"] for item in response_data]
             return valid_ids
+        # if the response is an object (dict), check if it's hal+json
+        if embedded := response_data.get("_embedded"):
+            # there should be 1 item in the dict that has a value that's a list
+            for value in embedded.values():
+                if isinstance(value, list):
+                    valid_ids = [item["id"] for item in value]
+                    return valid_ids
         if valid_id := response_data.get("id"):
             return [valid_id]
         valid_ids = [item["id"] for item in response_data["items"]]
