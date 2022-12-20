@@ -25,7 +25,7 @@ Test Get Invalidated Parameters Raises For Mismatched Parameters List
     ${request_data}=    Get Request Data    endpoint=/secret_message    method=get
     Evaluate    ${request_data.parameters.clear()} is None
     Evaluate    ${request_data.parameters.append({"name": "dummy"})} is None
-    Run Keyword And Expect Error    ValueError: secret-code not found in provided parameters.
+    Run Keyword And Expect Error    ValueError: No parameter can be changed to cause status_code 401.
     ...    Get Invalidated Parameters
     ...    status_code=401
     ...    request_data=${request_data}
@@ -39,7 +39,7 @@ Test Get Invalidated Parameters Raises For Status Code That Cannot Be Invalidate
 
 Test Get Invalidated Parameters Raises For Headers That Cannot Be Invalidated
     ${request_data}=    Get Request Data    endpoint=/    method=get
-    Run Keyword And Expect Error    ValueError: Headers cannot be invalidated.
+    Run Keyword And Expect Error    ValueError: None of the query parameters and headers can be invalidated.
     ...    Get Invalidated Parameters
     ...    status_code=422
     ...    request_data=${request_data}

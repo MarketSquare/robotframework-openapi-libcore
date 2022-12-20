@@ -1044,6 +1044,11 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             )
             parameter_names = parameter_names - additional_relation_property_names
 
+        if not parameter_names:
+            raise ValueError(
+                f"No parameter can be changed to cause status_code {status_code}."
+            )
+
         parameter_to_invalidate = choice(tuple(parameter_names))
 
         # check for invalid parameters in the provided request_data
