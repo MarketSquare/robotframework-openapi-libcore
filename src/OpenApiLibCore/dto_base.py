@@ -127,7 +127,9 @@ class Dto(ABC):
 
         relations = self.get_relations_for_error_code(error_code=status_code)
         # filter PathProperyConstraints since in that case no data can be invalidated
-        relations = [r for r in relations if not isinstance(r, PathPropertiesConstraint)]
+        relations = [
+            r for r in relations if not isinstance(r, PathPropertiesConstraint)
+        ]
         property_names = [r.property_name for r in relations]
         if status_code == invalid_property_default_code:
             # add all properties defined in the schema, including optional properties
