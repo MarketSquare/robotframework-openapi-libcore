@@ -998,6 +998,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         """
         if not request_data.parameters:
             raise ValueError("No params or headers to invalidate.")
+
         # ensure the status_code can be triggered
         relations = request_data.dto.get_parameter_relations_for_error_code(status_code)
         relations_for_status_code = [
@@ -1011,27 +1012,40 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 raise ValueError(
                     f"No relations to cause status_code {status_code} found."
                 )
+
         # ensure we're not modifying mutable properties
         params = deepcopy(request_data.params)
         headers = deepcopy(request_data.headers)
 
         if status_code == self.invalid_property_default_response:
-            parameter_names = set(params.keys()).union(
+            # take the params and headers that can be invalidated based on data type
+            # and expand the set with properties that can be invalided by relations
+            parameter_names = set(request_data.params_that_can_be_invalidated).union(
                 request_data.headers_that_can_be_invalidated
             )
             parameter_names.update(relation_property_names)
-            # if all parameters are optional and none were provided, randomly pick one
             if not parameter_names:
-                parameter_names = {
-                    d["name"] for d in request_data.parameters if d["in"] in ["query"]
-                }
-            if not parameter_names:
-                raise ValueError("Headers cannot be invalidated.")
+                raise ValueError(
+                    "None of the query parameters and headers can be invalidated."
+                )
         else:
             # non-default status_codes can only be the result of a Relation
             parameter_names = relation_property_names
 
+        # Dto mappings may contain generic mappings for properties that are not present
+        # in this specific schema
+        request_data_parameter_names = [p.get("name") for p in request_data.parameters]
+        additional_relation_property_names = {n for n in relation_property_names if n not in request_data_parameter_names}
+        if additional_relation_property_names:
+            logger.warning(
+                f"get_parameter_relations_for_error_code yielded properties that are "
+                f"not defined in the schema: {additional_relation_property_names}\n"
+                f"These properties will be ignored for parameter invalidation."
+            )
+            parameter_names = parameter_names - additional_relation_property_names
+
         parameter_to_invalidate = choice(tuple(parameter_names))
+
         # check for invalid parameters in the provided request_data
         try:
             [parameter_data] = [
@@ -1043,6 +1057,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             raise ValueError(
                 f"{parameter_to_invalidate} not found in provided parameters."
             ) from None
+
         # get the constraint values if available for the chosen parameter
         try:
             [values_from_constraint] = [
@@ -1052,6 +1067,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             ]
         except ValueError:
             values_from_constraint = []
+
         # if the parameter was not provided, add it to params / headers
         params, headers = self.ensure_parameter_in_parameters(
             parameter_to_invalidate=parameter_to_invalidate,
@@ -1060,6 +1076,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             parameter_data=parameter_data,
             values_from_constraint=values_from_constraint,
         )
+
         # determine the invalid_value
         if parameter_to_invalidate in params.keys():
             valid_value = params[parameter_to_invalidate]
@@ -1071,6 +1088,8 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             current_value=valid_value,
             values_from_constraint=values_from_constraint,
         )
+        logger.debug(f"{parameter_to_invalidate} changed to {invalid_value}")
+
         # update the params / headers and return
         if parameter_to_invalidate in params.keys():
             params[parameter_to_invalidate] = invalid_value
