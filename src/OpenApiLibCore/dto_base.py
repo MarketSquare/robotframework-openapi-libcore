@@ -126,6 +126,8 @@ class Dto(ABC):
         properties: Dict[str, Any] = self.__dict__
 
         relations = self.get_relations_for_error_code(error_code=status_code)
+        # filter PathProperyConstraints since in that case no data can be invalidated
+        relations = [r for r in relations if not isinstance(r, PathPropertiesConstraint)]
         property_names = [r.property_name for r in relations]
         if status_code == invalid_property_default_code:
             # add all properties defined in the schema, including optional properties
@@ -175,7 +177,6 @@ class Dto(ABC):
             if current_value is SENTINEL:
                 # the current_value isn't very relevant as long as the type is correct
                 # so no logic to handle Relations / objects / arrays here
-                value_schema = schema["properties"][property_name]
                 property_type = value_schema["type"]
                 if property_type == "object":
                     current_value = {}
