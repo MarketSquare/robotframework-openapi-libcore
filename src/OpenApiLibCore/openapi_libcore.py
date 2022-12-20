@@ -128,8 +128,8 @@ from random import choice
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union
 from uuid import uuid4
 
-from openapi_core import create_spec
-from openapi_core.validation.response.validators import ResponseValidator
+from openapi_core import Spec
+from openapi_core.validation.response import openapi_response_validator
 from prance import ResolvingParser, ValidationError
 from prance.util.url import ResolutionError
 from requests import Response, Session
@@ -205,7 +205,7 @@ class RequestValues:
 class RequestData:
     """Helper class to manage parameters used when making requests."""
 
-    dto: Union[Dto, DefaultDto] = DefaultDto()
+    dto: Union[Dto, DefaultDto] = field(default_factory=DefaultDto())
     dto_schema: Dict[str, Any] = field(default_factory=dict)
     parameters: List[Dict[str, Any]] = field(default_factory=list)
     params: Dict[str, Any] = field(default_factory=dict)
@@ -463,10 +463,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 "Source was loaded, but no specification was present after parsing."
             )
         self._openapi_spec: Dict[str, Any] = openapi_spec
-        validation_spec = create_spec(self.openapi_spec)
-        self.response_validator = ResponseValidator(
-            spec=validation_spec,
-        )
+        self.validation_spec = Spec.create(self.openapi_spec)
         self.session = Session()
         self.origin = origin
         self.base_url = f"{self.origin}{base_path}"
@@ -498,6 +495,13 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             self.get_dto_class = get_dto_class(mappings_module_name="no_mapping")
         if faker_locale:
             FAKE.set_locale(locale=faker_locale)
+
+    def validate_response_vs_spec(self, request, response):
+        return openapi_response_validator.validate(
+            spec=self.validation_spec,
+            request=request,
+            response=response,
+        )
 
     @property
     def openapi_spec(self):
@@ -1035,7 +1039,9 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         # Dto mappings may contain generic mappings for properties that are not present
         # in this specific schema
         request_data_parameter_names = [p.get("name") for p in request_data.parameters]
-        additional_relation_property_names = {n for n in relation_property_names if n not in request_data_parameter_names}
+        additional_relation_property_names = {
+            n for n in relation_property_names if n not in request_data_parameter_names
+        }
         if additional_relation_property_names:
             logger.warning(
                 f"get_parameter_relations_for_error_code yielded properties that are "
