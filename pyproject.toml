@@ -1,6 +1,6 @@
 [tool.poetry]
 name="robotframework-openapi-libcore"
-version = "1.7.0"
+version = "1.7.1"
 description = "A Robot Framework library to facilitate library development for OpenAPI / Swagger APIs."
 license = "Apache-2.0"
 authors = ["Robin Mackaij <r.a.mackaij@gmail.com>"]
@@ -29,7 +29,6 @@ prance = "^0.22"
 Faker = ">=11"
 rstr = "^3"
 openapi-core = "^0.16"
-openapi-spec-validator = "^0.5"
 
 [tool.poetry.dev-dependencies]
 black = "*"
