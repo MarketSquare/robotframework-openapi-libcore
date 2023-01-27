@@ -268,6 +268,7 @@ def get_invalid_value_from_constraint(
         or not values_from_constraint
     ):
         return None
+    # FIXME: this does not guarenteed to invalidate an array
     invalid_values = 2 * values_from_constraint
     invalid_value = invalid_values.pop()
     if value_type in ["integer", "number"]:
