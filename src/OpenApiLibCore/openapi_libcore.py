@@ -110,8 +110,6 @@ Details about the `mappings_path` variable usage can be found
 There are currently a number of limitations to supported API structures, supported
 data types and properties. The following list details the most important ones:
 - Only JSON request and response bodies are supported.
-- The unique identifier for a resource as used in the `paths` section of the
-    openapi document is expected to be the `id` property on a resource of that type.
 - No support for per-endpoint authorization levels.
 
 """
@@ -129,6 +127,10 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union
 from uuid import uuid4
 
 from openapi_core import Spec
+from openapi_core.contrib.requests import (
+    RequestsOpenAPIRequest,
+    RequestsOpenAPIResponse,
+)
 from openapi_core.validation.response import openapi_response_validator
 from prance import ResolvingParser, ValidationError
 from prance.util.url import ResolutionError
@@ -147,7 +149,12 @@ from OpenApiLibCore.dto_base import (
     Relation,
     UniquePropertyValueConstraint,
 )
-from OpenApiLibCore.dto_utils import DefaultDto, get_dto_class
+from OpenApiLibCore.dto_utils import (
+    DEFAULT_ID_PROPERTY_NAME,
+    DefaultDto,
+    get_dto_class,
+    get_id_property_name,
+)
 from OpenApiLibCore.value_utils import FAKE, IGNORE
 
 run_keyword = BuiltIn().run_keyword
@@ -205,7 +212,7 @@ class RequestValues:
 class RequestData:
     """Helper class to manage parameters used when making requests."""
 
-    dto: Union[Dto, DefaultDto] = field(default_factory=DefaultDto())
+    dto: Union[Dto, DefaultDto] = field(default_factory=DefaultDto)
     dto_schema: Dict[str, Any] = field(default_factory=dict)
     parameters: List[Dict[str, Any]] = field(default_factory=list)
     params: Dict[str, Any] = field(default_factory=dict)
@@ -380,14 +387,14 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         recursion_limit: int = 1,
         recursion_default: Any = {},
         faker_locale: Optional[Union[str, List[str]]] = None,
+        default_id_property_name: str = "id",
     ) -> None:
-        # region: docstring
         """
         === source ===
         An absolute path to an openapi.json or openapi.yaml file or an url to such a file.
 
         === origin ===
-        The server (and port) of the target server. E.g. ``https://localhost:7000``
+        The server (and port) of the target server. E.g. ``https://localhost:8000``
 
         === base_path ===
         The routing between ``origin`` and the endpoints as found in the ``paths`` in the
@@ -437,8 +444,17 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         === faker_locale ===
         A locale string or list of locale strings to pass to Faker to be used in
         generation of string data for supported format types.
+
+        === default_id_property_name ===
+        The default name for the property that identifies a resource (i.e. a unique
+        entiry) within the API.
+        The default value for this property name is `id`.
+        If the target API uses a different name for all the resources within the API,
+        you can configure it globally using this property.
+
+        If different property names are used for the unique identifier for different
+        types of resources, an `ID_MAPPING` can be implemented in the `mappings_path`.
         """
-        # endregion
         try:
 
             def recursion_limit_handler(limit, refstring, recursions):
@@ -490,13 +506,27 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             self.get_dto_class = get_dto_class(
                 mappings_module_name=mappings_module_name
             )
+            self.get_id_property_name = get_id_property_name(
+                mappings_module_name=mappings_module_name
+            )
             sys.path.pop()
         else:
             self.get_dto_class = get_dto_class(mappings_module_name="no_mapping")
+            self.get_id_property_name = get_id_property_name(
+                mappings_module_name="no mapping"
+            )
         if faker_locale:
             FAKE.set_locale(locale=faker_locale)
+        # update the globally available DEFAULT_ID_PROPERTY_NAME to the provided value
+        DEFAULT_ID_PROPERTY_NAME.id_property_name = default_id_property_name
 
-    def validate_response_vs_spec(self, request, response):
+    def validate_response_vs_spec(
+        self, request: RequestsOpenAPIRequest, response: RequestsOpenAPIResponse
+    ):
+        """
+        Validate the reponse for a given request against the OpenAPI Spec that is
+        loaded during library initialization.
+        """
         return openapi_response_validator.validate(
             spec=self.validation_spec,
             request=request,
@@ -582,6 +612,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         assert (
             response.ok
         ), f"get_valid_id_for_endpoint received status_code {response.status_code}"
+
         response_data = response.json()
         if prepared_body := response.request.body:
             if isinstance(prepared_body, bytes):
@@ -590,32 +621,38 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 send_json = _json.loads(prepared_body)
         else:
             send_json = None
+
         # no support for retrieving an id from an array returned on a POST request
         if isinstance(response_data, list):
             raise NotImplementedError(
                 f"Unexpected response body for POST request: expected an object but "
                 f"received an array ({response_data})"
             )
+        # the name for the id property is determined by the path
+        id_property = self.get_id_property_name(endpoint=endpoint)
+
         # POST on /resource_type/{id}/array_item/ will return the updated {id} resource
         # instead of a newly created resource. In this case, the send_json must be
         # in the array of the 'array_item' property on {id}
         send_path: str = response.request.path_url
-        response_path: Optional[str] = response_data.get("href", None)
-        if response_path and (send_path not in response_path) and send_json:
+        response_href: Optional[str] = response_data.get("href", None)
+        if response_href and (send_path not in response_href) and send_json:
             try:
-                property_to_check = send_path.replace(response_path, "")[1:]
+                property_to_check = send_path.replace(response_href, "")[1:]
                 item_list: List[Dict[str, Any]] = response_data[property_to_check]
                 # Use the (mandatory) id to get the POSTed resource from the list
                 [valid_id] = [
-                    item["id"] for item in item_list if item["id"] == send_json["id"]
+                    item[id_property]
+                    for item in item_list
+                    if item[id_property] == send_json[id_property]
                 ]
             except Exception as exception:
                 raise AssertionError(
-                    f"Failed to get a valid id from {response_path}"
+                    f"Failed to get a valid id from {response_href}"
                 ) from exception
         else:
             try:
-                valid_id = response_data["id"]
+                valid_id = response_data[id_property]
             except KeyError:
                 raise AssertionError(
                     f"Failed to get a valid id from {response_data}"
@@ -639,19 +676,23 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         )
         assert response.ok
         response_data: Union[Dict[str, Any], List[Dict[str, Any]]] = response.json()
+
+        # the name for the id property is determined by the path
+        id_property = self.get_id_property_name(endpoint=endpoint)
+
         if isinstance(response_data, list):
-            valid_ids: List[str] = [item["id"] for item in response_data]
+            valid_ids: List[str] = [item[id_property] for item in response_data]
             return valid_ids
         # if the response is an object (dict), check if it's hal+json
         if embedded := response_data.get("_embedded"):
             # there should be 1 item in the dict that has a value that's a list
             for value in embedded.values():
                 if isinstance(value, list):
-                    valid_ids = [item["id"] for item in value]
+                    valid_ids = [item[id_property] for item in value]
                     return valid_ids
-        if valid_id := response_data.get("id"):
+        if valid_id := response_data.get(id_property):
             return [valid_id]
-        valid_ids = [item["id"] for item in response_data["items"]]
+        valid_ids = [item[id_property] for item in response_data["items"]]
         return valid_ids
 
     @keyword
