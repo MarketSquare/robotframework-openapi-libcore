@@ -1,5 +1,5 @@
 # pylint: disable=invalid-name
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List, Tuple, Type
 
 from OpenApiLibCore import (
     IGNORE,
@@ -107,7 +107,7 @@ class MessageDto(Dto):
         return relations
 
 
-DTO_MAPPING: Dict[Tuple[Any, Any], Any] = {
+DTO_MAPPING: Dict[Tuple[str, str], Type[Dto]] = {
     ("/wagegroups", "post"): WagegroupDto,
     ("/wagegroups/{wagegroup_id}", "delete"): WagegroupDeleteDto,
     ("/wagegroups/{wagegroup_id}", "put"): WagegroupDto,
@@ -115,4 +115,9 @@ DTO_MAPPING: Dict[Tuple[Any, Any], Any] = {
     ("/employees/{employee_id}", "patch"): EmployeeDto,
     ("/energy_label/{zipcode}/{home_number}", "get"): EnergyLabelDto,
     ("/secret_message", "get"): MessageDto,
+}
+
+ID_MAPPING: Dict[str, str] = {
+    "/wagegroups": "wagegroup_id",
+    "/wagegroups/{wagegroup_id}": "wagegroup_id",
 }
