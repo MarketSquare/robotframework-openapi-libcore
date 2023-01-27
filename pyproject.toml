@@ -1,6 +1,6 @@
 [tool.poetry]
 name="robotframework-openapi-libcore"
-version = "1.7.1"
+version = "1.8.0"
 description = "A Robot Framework library to facilitate library development for OpenAPI / Swagger APIs."
 license = "Apache-2.0"
 authors = ["Robin Mackaij <r.a.mackaij@gmail.com>"]
@@ -30,7 +30,7 @@ Faker = ">=11"
 rstr = "^3"
 openapi-core = "^0.16"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 black = "*"
 isort = "*"
 pylint = "*"
@@ -38,10 +38,11 @@ mypy = "*"
 types-requests = "^2.25.6"
 invoke = "*"
 robotframework-stacktrace = "*"
-robotframework-tidy = "*"
 uvicorn = "*"
 fastapi = ">=0.88"
 coverage = {version = "^5.5", extras = ["toml"]}
+robotframework-tidy = "^3.3.3"
+robotframework-robocop = "^2.7.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -60,6 +61,7 @@ exclude_lines = [
 
 [tool.mypy]
 show_error_codes = true
+plugins = "pydantic.mypy"
 
 [[tool.mypy.overrides]]
 module = [
