@@ -699,6 +699,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
     def get_request_data(self, endpoint: str, method: str) -> RequestData:
         """Return an object with valid request data for body, headers and query params."""
         method = method.lower()
+        dto_cls_name = self._get_dto_cls_name(endpoint=endpoint, method=method)
         # The endpoint can contain already resolved Ids that have to be matched
         # against the parametrized endpoints in the paths section.
         spec_endpoint = self.get_parametrized_endpoint(endpoint)
@@ -719,7 +720,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 dto_instance: Dto = DefaultDto()
             else:
                 dto_class = make_dataclass(
-                    cls_name=method_spec["operationId"],
+                    cls_name=method_spec.get("operationId", dto_cls_name),
                     fields=[],
                     bases=(dto_class,),
                 )
@@ -734,14 +735,14 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         dto_data = self.get_json_data_for_dto_class(
             schema=content_schema,
             dto_class=dto_class,
-            operation_id=method_spec.get("operationId"),
+            operation_id=method_spec.get("operationId", ""),
         )
         if dto_data is None:
             dto_instance = DefaultDto()
         else:
             fields = self.get_fields_from_dto_data(content_schema, dto_data)
             dto_class = make_dataclass(
-                cls_name=method_spec["operationId"],
+                cls_name=method_spec.get("operationId", dto_cls_name),
                 fields=fields,
                 bases=(dto_class,),
             )
@@ -753,6 +754,15 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             params=params,
             headers=headers,
         )
+
+    @staticmethod
+    def _get_dto_cls_name(endpoint: str, method: str) -> str:
+        method = method.capitalize()
+        path = endpoint.translate({ord(i): None for i in "{}"})
+        path_parts = path.split("/")
+        path_parts = [p.capitalize() for p in path_parts]
+        result = "".join([method, *path_parts])
+        return result
 
     @staticmethod
     def get_fields_from_dto_data(
@@ -866,7 +876,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         self,
         schema: Dict[str, Any],
         dto_class: Union[Dto, Type[Dto]],
-        operation_id: str,
+        operation_id: str = "",
     ) -> Optional[Dict[str, Any]]:
         """
         Generate a valid (json-compatible) dict for all the `dto_class` properties.

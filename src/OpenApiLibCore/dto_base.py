@@ -7,7 +7,7 @@ from abc import ABC
 from dataclasses import dataclass
 from logging import getLogger
 from random import shuffle
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 from uuid import uuid4
 
 from OpenApiLibCore import value_utils
@@ -51,7 +51,7 @@ class IdDependency(ResourceRelation):
 
     property_name: str
     get_path: str
-    operation_id: Optional[str] = None
+    operation_id: str = ""
     error_code: int = 422
 
 
