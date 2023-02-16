@@ -4,7 +4,7 @@ to implement custom mappings for dependencies between resources in the API under
 test and constraints / restrictions on properties of the resources.
 """
 from abc import ABC
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from logging import getLogger
 from random import shuffle
 from typing import Any, Dict, List, Optional, Union
@@ -97,7 +97,10 @@ class Dto(ABC):
             r
             for r in self.get_parameter_relations()
             if r.error_code == error_code
-            or getattr(r, "invalid_value_error_code", None) == error_code
+            or (
+                getattr(r, "invalid_value_error_code", None) == error_code
+                and getattr(r, "invalid_value", None) != NOT_SET
+            )
         ]
         return relations
 
@@ -112,7 +115,10 @@ class Dto(ABC):
             r
             for r in self.get_relations()
             if r.error_code == error_code
-            or getattr(r, "invalid_value_error_code", None) == error_code
+            or (
+                getattr(r, "invalid_value_error_code", None) == error_code
+                and getattr(r, "invalid_value", None) != NOT_SET
+            )
         ]
         return relations
 
@@ -213,4 +219,5 @@ class Dto(ABC):
         return properties  # pragma: no cover
 
     def as_dict(self) -> Dict[Any, Any]:
+        """Return the dict representation of the Dto."""
         return asdict(self)
