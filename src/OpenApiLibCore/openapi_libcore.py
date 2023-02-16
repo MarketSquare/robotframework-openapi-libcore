@@ -164,15 +164,23 @@ run_keyword = BuiltIn().run_keyword
 logger = getLogger(__name__)
 
 
-# TODO: figure out if oneOf and anyOf need special handling
 def resolve_schema(schema: Dict[str, Any]) -> Dict[str, Any]:
-    """Helper method to resolve allOf instances in a schema."""
+    """Helper method to resolve allOf, anyOf and oneOf instances in a schema."""
     # schema is mutable, so deepcopy to prevent mutation of original schema argument
     resolved_schema: Dict[str, Any] = deepcopy(schema)
     if schema_parts := resolved_schema.pop("allOf", None):
         for schema_part in schema_parts:
             resolved_part = resolve_schema(schema_part)
             resolved_schema = merge_schemas(resolved_schema, resolved_part)
+    # TODO: validate against real-world examples
+    if schema_parts := resolved_schema.pop("anyOf", None):
+        for schema_part in schema_parts:
+            resolved_part = resolve_schema(schema_part)
+            resolved_schema = merge_schemas(resolved_schema, resolved_part)
+    if schema_parts := resolved_schema.pop("oneOf", None):
+        selected_schema_part = choice(schema_parts)
+        resolved_part = resolve_schema(selected_schema_part)
+        resolved_schema = merge_schemas(resolved_schema, resolved_part)
     return resolved_schema
 
 
@@ -602,11 +610,22 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             request_data.get_required_headers(),
             request_data.get_required_properties_dict(),
         )
+
+        # determine the id property name for this path and whether or not a transformer is used
+        mapping = self.get_id_property_name(endpoint=endpoint)
+        if isinstance(mapping, str):
+            id_property = mapping
+            # set the transformer to a dummy callable that returns the original value so
+            # the transformer can be applied on any returned id
+            id_transformer = lambda x: x
+        else:
+            id_property, id_transformer = mapping
+
         if response.status_code == 405:
             # For endpoints that do no support POST, try to get an existing id using GET
             try:
                 valid_id = choice(run_keyword("get_ids_from_url", url))
-                return valid_id
+                return id_transformer(valid_id)
             except Exception as exception:
                 raise AssertionError(
                     f"Failed to get a valid id using GET on {url}"
@@ -631,8 +650,6 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 f"Unexpected response body for POST request: expected an object but "
                 f"received an array ({response_data})"
             )
-        # the name for the id property is determined by the path
-        id_property = self.get_id_property_name(endpoint=endpoint)
 
         # POST on /resource_type/{id}/array_item/ will return the updated {id} resource
         # instead of a newly created resource. In this case, the send_json must be
@@ -660,7 +677,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 raise AssertionError(
                     f"Failed to get a valid id from {response_data}"
                 ) from None
-        return valid_id
+        return id_transformer(valid_id)
 
     @keyword
     def get_ids_from_url(self, url: str) -> List[str]:
@@ -680,8 +697,12 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         assert response.ok
         response_data: Union[Dict[str, Any], List[Dict[str, Any]]] = response.json()
 
-        # the name for the id property is determined by the path
-        id_property = self.get_id_property_name(endpoint=endpoint)
+        # determine the property name to use
+        mapping = self.get_id_property_name(endpoint=endpoint)
+        if isinstance(mapping, str):
+            id_property = mapping
+        else:
+            id_property, _ = mapping
 
         if isinstance(response_data, list):
             valid_ids: List[str] = [item[id_property] for item in response_data]
@@ -1064,6 +1085,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             for r in relations
             if isinstance(r, PropertyValueConstraint) and (r.error_code == status_code or r.invalid_value_error_code == status_code)
         ]
+        parameters_to_ignore = {r.property_name for r in relations_for_status_code if r.invalid_value_error_code == status_code and r.invalid_value == IGNORE}
         relation_property_names = {r.property_name for r in relations_for_status_code}
         if not relation_property_names:
             if status_code != self.invalid_property_default_response:
@@ -1109,6 +1131,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 f"No parameter can be changed to cause status_code {status_code}."
             )
 
+        parameter_names = parameter_names - parameters_to_ignore
         parameter_to_invalidate = choice(tuple(parameter_names))
 
         # check for invalid parameters in the provided request_data
@@ -1128,7 +1151,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             [invalid_value_for_error_code] = [
                 r.invalid_value
                 for r in relations_for_status_code
-                if r.property_name == parameter_to_invalidate
+                if r.property_name == parameter_to_invalidate and r.invalid_value_error_code == status_code
             ]
         except ValueError:
             invalid_value_for_error_code = NOT_SET
