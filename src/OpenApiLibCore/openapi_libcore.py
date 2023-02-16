@@ -144,6 +144,7 @@ from OpenApiLibCore.dto_base import (
     Dto,
     IdDependency,
     IdReference,
+    NOT_SET,
     PathPropertiesConstraint,
     PropertyValueConstraint,
     Relation,
@@ -553,7 +554,9 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         """
         method = method.lower()
         try:
-            self.openapi_spec["paths"][endpoint]
+            # endpoint can be partially resolved or provided by a PathPropertiesConstraint
+            parametrized_endpoint = self.get_parametrized_endpoint(endpoint=endpoint)
+            _ = self.openapi_spec["paths"][parametrized_endpoint]
         except KeyError:
             raise ValueError(
                 f"{endpoint} not found in paths section of the OpenAPI document."
@@ -707,7 +710,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         try:
             method_spec = self.openapi_spec["paths"][spec_endpoint][method]
         except KeyError:
-            logger.warning(
+            logger.info(
                 f"method '{method}' not supported on '{spec_endpoint}, using empty spec."
             )
             method_spec = {}
@@ -1059,7 +1062,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         relations_for_status_code = [
             r
             for r in relations
-            if isinstance(r, PropertyValueConstraint) and r.error_code == status_code
+            if isinstance(r, PropertyValueConstraint) and (r.error_code == status_code or r.invalid_value_error_code == status_code)
         ]
         relation_property_names = {r.property_name for r in relations_for_status_code}
         if not relation_property_names:
@@ -1120,6 +1123,16 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 f"{parameter_to_invalidate} not found in provided parameters."
             ) from None
 
+        # get the invalid_value for the chosen parameter
+        try:
+            [invalid_value_for_error_code] = [
+                r.invalid_value
+                for r in relations_for_status_code
+                if r.property_name == parameter_to_invalidate
+            ]
+        except ValueError:
+            invalid_value_for_error_code = NOT_SET
+
         # get the constraint values if available for the chosen parameter
         try:
             [values_from_constraint] = [
@@ -1140,16 +1153,19 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         )
 
         # determine the invalid_value
-        if parameter_to_invalidate in params.keys():
-            valid_value = params[parameter_to_invalidate]
+        if invalid_value_for_error_code != NOT_SET:
+            invalid_value = invalid_value_for_error_code
         else:
-            valid_value = headers[parameter_to_invalidate]
+            if parameter_to_invalidate in params.keys():
+                valid_value = params[parameter_to_invalidate]
+            else:
+                valid_value = headers[parameter_to_invalidate]
 
-        invalid_value = value_utils.get_invalid_value(
-            value_schema=parameter_data["schema"],
-            current_value=valid_value,
-            values_from_constraint=values_from_constraint,
-        )
+            invalid_value = value_utils.get_invalid_value(
+                value_schema=parameter_data["schema"],
+                current_value=valid_value,
+                values_from_constraint=values_from_constraint,
+            )
         logger.debug(f"{parameter_to_invalidate} changed to {invalid_value}")
 
         # update the params / headers and return
