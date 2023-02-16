@@ -141,10 +141,10 @@ from robot.libraries.BuiltIn import BuiltIn
 
 from OpenApiLibCore import value_utils
 from OpenApiLibCore.dto_base import (
+    NOT_SET,
     Dto,
     IdDependency,
     IdReference,
-    NOT_SET,
     PathPropertiesConstraint,
     PropertyValueConstraint,
     Relation,
@@ -520,7 +520,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             )
             sys.path.pop()
         else:
-            self.get_dto_class = get_dto_class(mappings_module_name="no_mapping")
+            self.get_dto_class = get_dto_class(mappings_module_name="no mapping")
             self.get_id_property_name = get_id_property_name(
                 mappings_module_name="no mapping"
             )
@@ -1083,9 +1083,16 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         relations_for_status_code = [
             r
             for r in relations
-            if isinstance(r, PropertyValueConstraint) and (r.error_code == status_code or r.invalid_value_error_code == status_code)
+            if isinstance(r, PropertyValueConstraint)
+            and (
+                r.error_code == status_code or r.invalid_value_error_code == status_code
+            )
         ]
-        parameters_to_ignore = {r.property_name for r in relations_for_status_code if r.invalid_value_error_code == status_code and r.invalid_value == IGNORE}
+        parameters_to_ignore = {
+            r.property_name
+            for r in relations_for_status_code
+            if r.invalid_value_error_code == status_code and r.invalid_value == IGNORE
+        }
         relation_property_names = {r.property_name for r in relations_for_status_code}
         if not relation_property_names:
             if status_code != self.invalid_property_default_response:
@@ -1151,7 +1158,8 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             [invalid_value_for_error_code] = [
                 r.invalid_value
                 for r in relations_for_status_code
-                if r.property_name == parameter_to_invalidate and r.invalid_value_error_code == status_code
+                if r.property_name == parameter_to_invalidate
+                and r.invalid_value_error_code == status_code
             ]
         except ValueError:
             invalid_value_for_error_code = NOT_SET
