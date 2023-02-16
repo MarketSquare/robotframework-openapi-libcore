@@ -1,6 +1,7 @@
 """Utility module with functions to handle OpenAPI value types and restrictions."""
 import base64
 import datetime
+from copy import deepcopy
 from logging import getLogger
 from random import choice, randint, uniform
 from typing import Any, Dict, List, Optional, Union
@@ -88,7 +89,7 @@ def json_type_name_of_python_type(python_type: Any) -> str:
         return "string"
     if python_type == bool:
         return "boolean"
-    if python_type== int:
+    if python_type == int:
         return "integer"
     if python_type == float:
         return "number"
@@ -286,6 +287,7 @@ def get_invalid_value_from_constraint(
     ):
         return None
 
+    values_from_constraint = deepcopy(values_from_constraint)
     # for objects, keep the keys intact but update the values
     if value_type == "object":
         valid_object = values_from_constraint.pop()
@@ -348,7 +350,8 @@ def get_invalid_value_from_enum(values: List[Any], value_type: str):
         if value_type == "string":
             invalid_value += value + value
         if value_type == "array":
-            invalid_value.extend(value).extend(value)
+            invalid_value.extend(value)
+            invalid_value.extend(value)
         # objects are a special case, since they must be of the same type / class
         # invalid_value.update(value) will end up with the last value in the list,
         # which is a valid value, so another approach is needed
