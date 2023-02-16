@@ -31,7 +31,7 @@ class get_dto_class:
             mappings_module = import_module(mappings_module_name)
             self.dto_mapping: Dict[Tuple[str, str], Type[Dto]] = mappings_module.DTO_MAPPING  # type: ignore[attr-defined]
         except (ImportError, AttributeError, ValueError) as exception:
-            logger.debug(f"DTO_MAPPING was not imported: {exception}")
+            logger.warning(f"DTO_MAPPING was not imported: {exception}")
             self.dto_mapping = {}
 
     def __call__(self, endpoint: str, method: str) -> Type[Dto]:
@@ -54,7 +54,7 @@ class get_id_property_name:
             mappings_module = import_module(mappings_module_name)
             self.id_mapping: Dict[str, str] = mappings_module.ID_MAPPING  # type: ignore[attr-defined]
         except (ImportError, AttributeError, ValueError) as exception:
-            logger.debug(f"ID_MAPPING was not imported: {exception}")
+            logger.warning(f"ID_MAPPING was not imported: {exception}")
             self.id_mapping = {}
 
     def __call__(self, endpoint: str) -> str:
