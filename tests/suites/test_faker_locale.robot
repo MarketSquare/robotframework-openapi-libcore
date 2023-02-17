@@ -8,7 +8,7 @@ Variables       ${root}/tests/variables.py
 
 
 *** Variables ***
-${origin}       http://localhost:8000
+${origin}=      http://localhost:8000
 
 
 *** Test Cases ***

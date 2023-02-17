@@ -1,12 +1,7 @@
 # pylint: disable=missing-function-docstring, unused-argument
-# monkey-patch for 3.11 compatibility, see https://github.com/pyinvoke/invoke/issues/833
-import inspect
 import pathlib
 import subprocess
 from importlib.metadata import version
-
-if not hasattr(inspect, "getargspec"):
-    inspect.getargspec = inspect.getfullargspec
 
 from invoke import task
 
@@ -72,13 +67,14 @@ def tests(context):
 def lint(context):
     subprocess.run(f"mypy {ROOT}", shell=True, check=False)
     subprocess.run(f"pylint {ROOT}/src/OpenApiLibCore", shell=True, check=False)
+    subprocess.run(f"robocop {ROOT}/tests/suites", shell=True, check=False)
 
 
 @task
 def format_code(context):
     subprocess.run(f"black {ROOT}", shell=True, check=False)
     subprocess.run(f"isort {ROOT}", shell=True, check=False)
-    subprocess.run(f"robotidy {ROOT}", shell=True, check=False)
+    subprocess.run(f"robotidy {ROOT}/tests/suites", shell=True, check=False)
 
 
 @task
@@ -126,18 +122,12 @@ def readme(context):
     # ---
     # """)
     front_matter = """---\n---\n"""
-    with open(f"{ROOT}/docs/README.md", "w", encoding="utf-8") as readme:
+    with open(f"{ROOT}/docs/README.md", "w", encoding="utf-8") as readme_file:
         doc_string = openapi_libcore.__doc__
-        readme.write(front_matter)
-        readme.write(str(doc_string).replace("\\", "\\\\").replace("\\\\*", "\\*"))
+        readme_file.write(front_matter)
+        readme_file.write(str(doc_string).replace("\\", "\\\\").replace("\\\\*", "\\*"))
 
 
 @task(format_code, libdoc, libspec, readme)
 def build(context):
     subprocess.run("poetry build", shell=True, check=False)
-
-
-@task(post=[build])
-def bump_version(context, rule):
-    subprocess.run(f"poetry version {rule}", shell=True, check=False)
-    subprocess.run("poetry install", shell=True, check=False)

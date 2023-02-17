@@ -1,6 +1,7 @@
 """Utility module with functions to handle OpenAPI value types and restrictions."""
 import base64
 import datetime
+from copy import deepcopy
 from logging import getLogger
 from random import choice, randint, uniform
 from typing import Any, Dict, List, Optional, Union
@@ -81,6 +82,22 @@ class LocalizedFaker:
 
 
 FAKE = LocalizedFaker()
+
+
+def json_type_name_of_python_type(python_type: Any) -> str:
+    if python_type == str:
+        return "string"
+    if python_type == bool:
+        return "boolean"
+    if python_type == int:
+        return "integer"
+    if python_type == float:
+        return "number"
+    if python_type == list:
+        return "array"
+    if python_type == dict:
+        return "object"
+    raise ValueError(f"No json type mapping for Python type {python_type} available.")
 
 
 def get_valid_value(value_schema: Dict[str, Any]) -> Any:
@@ -263,11 +280,41 @@ def get_invalid_value_from_constraint(
     # if the value is forced True or False, return the opposite to invalidate
     if len(values_from_constraint) == 1 and value_type == "boolean":
         return not values_from_constraint[0]
+    # for unsupported types or empty constraints lists return None
     if (
-        value_type not in ["string", "integer", "number", "array"]
+        value_type not in ["string", "integer", "number", "array", "object"]
         or not values_from_constraint
     ):
         return None
+
+    values_from_constraint = deepcopy(values_from_constraint)
+    # for objects, keep the keys intact but update the values
+    if value_type == "object":
+        valid_object = values_from_constraint.pop()
+        invalid_object = {}
+        for key, value in valid_object.items():
+            python_type_of_value = type(value)
+            json_type_of_value = json_type_name_of_python_type(python_type_of_value)
+            invalid_object[key] = get_invalid_value_from_constraint(
+                values_from_constraint=[value],
+                value_type=json_type_of_value,
+            )
+        return invalid_object
+
+    # for arrays, update each value in the array to a value of the same type
+    if value_type == "array":
+        valid_array = values_from_constraint.pop()
+        invalid_array = []
+        for value in valid_array:
+            python_type_of_value = type(value)
+            json_type_of_value = json_type_name_of_python_type(python_type_of_value)
+            invalid_value = get_invalid_value_from_constraint(
+                values_from_constraint=[value],
+                value_type=json_type_of_value,
+            )
+            invalid_array.append(invalid_value)
+        return invalid_array
+
     invalid_values = 2 * values_from_constraint
     invalid_value = invalid_values.pop()
     if value_type in ["integer", "number"]:
@@ -297,15 +344,18 @@ def get_invalid_value_from_enum(values: List[Any], value_type: str):
         logger.warning(f"Cannot invalidate enum value with type {value_type}")
         return None
     for value in values:
+        # repeat each addition to ensure single-item enums are invalidated
         if value_type in ["integer", "number"]:
-            invalid_value += abs(value)
+            invalid_value += abs(value) + abs(value)
         if value_type == "string":
-            invalid_value += value
+            invalid_value += value + value
         if value_type == "array":
+            invalid_value.extend(value)
             invalid_value.extend(value)
         # objects are a special case, since they must be of the same type / class
         # invalid_value.update(value) will end up with the last value in the list,
         # which is a valid value, so another approach is needed
+        # TODO: check if this works for enum with single object
         if value_type == "object":
             for key in invalid_value.keys():
                 invalid_value[key] = value.get(key)

@@ -242,7 +242,7 @@ class TestInvalidValueFromConstraint(unittest.TestCase):
         values = [{"red": 255, "green": 255, "blue": 255}]
         value = value_utils.get_invalid_value_from_constraint(
             values_from_constraint=values,
-            value_type="object",
+            value_type="dummy",
         )
         self.assertEqual(value, None)
 
@@ -355,7 +355,16 @@ class TestInvalidValueFromConstraint(unittest.TestCase):
             values_from_constraint=values,
             value_type="array",
         )
-        self.assertEqual(value, None)
+        self.assertEqual(value, [])
+
+    def test_object(self):
+        values = [{"red": 255, "green": 255, "blue": 255}]
+        value = value_utils.get_invalid_value_from_constraint(
+            values_from_constraint=values,
+            value_type="object",
+        )
+        self.assertNotEqual(value, values[0])
+        self.assertIsInstance(value, dict)
 
 
 class TestInvalidValueFromEnum(unittest.TestCase):

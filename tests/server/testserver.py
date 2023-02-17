@@ -2,30 +2,17 @@
 import datetime
 from enum import Enum
 from sys import float_info
-from typing import Callable, Dict, List, Optional
+from typing import Dict, List, Optional
 from uuid import uuid4
 
-from fastapi import FastAPI, Header, HTTPException, Path, Query, Request, Response
-from pydantic import BaseModel, confloat, conint, constr
+from fastapi import FastAPI, Header, HTTPException, Path, Query, Response
+from pydantic import BaseModel
 
 API_KEY = "OpenApiLibCore"
 API_KEY_NAME = "api_key"
 
 
 app = FastAPI()
-
-
-# @app.middleware("http")
-# async def validate_api_key(request: Request, call_next: Callable[..., Response]) -> Response:
-#     if (
-#         not str(request.url).endswith("openapi.json") and
-#         not str(request.url).endswith("docs") and
-#         request.headers.get(API_KEY_NAME) != API_KEY and
-#         request.headers.get("Authorization") != API_KEY
-#     ):
-#         return Response(status_code=401, content="Computer says no.")
-#     response = await call_next(request)
-#     return response
 
 
 REMOVE_ME: str = uuid4().hex
@@ -73,16 +60,14 @@ class Event(BaseModel):
 
 
 class WageGroup(BaseModel):
-    id: str
-    # hourly_rate: confloat(ge=14.37, lt=50.00)
+    wagegroup_id: str
     hourly_rate: float
     overtime_percentage: Optional[int] = DEPRECATED
 
 
 class EmployeeDetails(BaseModel):
-    id: str
+    identification: str
     name: str
-    # login_name: constr(strip_whitespace=True, min_length=1, max_length=20)
     employee_number: int
     wagegroup_id: str
     date_of_birth: datetime.date
@@ -91,7 +76,6 @@ class EmployeeDetails(BaseModel):
 
 class Employee(BaseModel):
     name: str
-    # login_name: constr(strip_whitespace=True, min_length=1, max_length=20)
     wagegroup_id: str
     date_of_birth: datetime.date
     parttime_day: Optional[WeekDay] = None
@@ -99,7 +83,6 @@ class Employee(BaseModel):
 
 class EmployeeUpdate(BaseModel):
     name: Optional[str] = None
-    # login_name: Optional[constr(strip_whitespace=True, min_length=1, max_length=20)]
     employee_number: Optional[int] = None
     wagegroup_id: Optional[str] = None
     date_of_birth: Optional[datetime.date] = None
@@ -193,7 +176,7 @@ def get_energy_label(
     responses={418: {"model": Detail}, 422: {"model": Detail}},
 )
 def post_wagegroup(wagegroup: WageGroup) -> WageGroup:
-    if wagegroup.id in WAGE_GROUPS.keys():
+    if wagegroup.wagegroup_id in WAGE_GROUPS.keys():
         raise HTTPException(status_code=418, detail="Wage group already exists.")
     if not (0.99 - DELTA) < (wagegroup.hourly_rate % 1) < (0.99 + DELTA):
         raise HTTPException(
@@ -205,7 +188,7 @@ def post_wagegroup(wagegroup: WageGroup) -> WageGroup:
             status_code=422, detail="Overtime percentage is deprecated."
         )
     wagegroup.overtime_percentage = None
-    WAGE_GROUPS[wagegroup.id] = wagegroup
+    WAGE_GROUPS[wagegroup.wagegroup_id] = wagegroup
     return wagegroup
 
 
@@ -230,7 +213,7 @@ def get_wagegroup(wagegroup_id: str) -> WageGroup:
 def put_wagegroup(wagegroup_id: str, wagegroup: WageGroup) -> WageGroup:
     if wagegroup_id not in WAGE_GROUPS.keys():
         raise HTTPException(status_code=404, detail="Wage group not found.")
-    if wagegroup.id in WAGE_GROUPS.keys():
+    if wagegroup.wagegroup_id in WAGE_GROUPS.keys():
         raise HTTPException(status_code=418, detail="Wage group already exists.")
     if not (0.99 - DELTA) < (wagegroup.hourly_rate % 1) < (0.99 + DELTA):
         raise HTTPException(
@@ -242,7 +225,7 @@ def put_wagegroup(wagegroup_id: str, wagegroup: WageGroup) -> WageGroup:
             status_code=422, detail="Overtime percentage is deprecated."
         )
     wagegroup.overtime_percentage = None
-    WAGE_GROUPS[wagegroup.id] = wagegroup
+    WAGE_GROUPS[wagegroup.wagegroup_id] = wagegroup
     return wagegroup
 
 
@@ -295,11 +278,11 @@ def post_employee(employee: Employee) -> EmployeeDetails:
             status_code=403, detail="An employee must be at least 18 years old."
         )
     new_employee = EmployeeDetails(
-        id=uuid4().hex,
+        identification=uuid4().hex,
         employee_number=next(EMPLOYEE_NUMBERS),
         **employee.dict(),
     )
-    EMPLOYEES[new_employee.id] = new_employee
+    EMPLOYEES[new_employee.identification] = new_employee
     return new_employee
 
 

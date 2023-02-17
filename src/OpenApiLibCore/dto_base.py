@@ -4,7 +4,7 @@ to implement custom mappings for dependencies between resources in the API under
 test and constraints / restrictions on properties of the resources.
 """
 from abc import ABC
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from logging import getLogger
 from random import shuffle
 from typing import Any, Dict, List, Optional, Union
@@ -97,7 +97,10 @@ class Dto(ABC):
             r
             for r in self.get_parameter_relations()
             if r.error_code == error_code
-            or getattr(r, "invalid_value_error_code", None) == error_code
+            or (
+                getattr(r, "invalid_value_error_code", None) == error_code
+                and getattr(r, "invalid_value", None) != NOT_SET
+            )
         ]
         return relations
 
@@ -112,7 +115,10 @@ class Dto(ABC):
             r
             for r in self.get_relations()
             if r.error_code == error_code
-            or getattr(r, "invalid_value_error_code", None) == error_code
+            or (
+                getattr(r, "invalid_value_error_code", None) == error_code
+                and getattr(r, "invalid_value", None) != NOT_SET
+            )
         ]
         return relations
 
@@ -123,7 +129,7 @@ class Dto(ABC):
         invalid_property_default_code: int,
     ) -> Dict[str, Any]:
         """Return a data set with one of the properties set to an invalid value or type."""
-        properties: Dict[str, Any] = self.__dict__
+        properties: Dict[str, Any] = self.as_dict()
 
         relations = self.get_relations_for_error_code(error_code=status_code)
         # filter PathProperyConstraints since in that case no data can be invalidated
@@ -171,6 +177,10 @@ class Dto(ABC):
                 and invalid_value_from_constraint[0] is not NOT_SET
             ):
                 properties[property_name] = invalid_value_from_constraint[0]
+                logger.debug(
+                    f"Using invalid_value {invalid_value_from_constraint[0]} to "
+                    f"invalidate property {property_name}"
+                )
                 return properties
 
             value_schema = schema["properties"][property_name]
@@ -194,10 +204,20 @@ class Dto(ABC):
                 and r.property_name == property_name
             ]
 
-            properties[property_name] = value_utils.get_invalid_value(
+            invalid_value = value_utils.get_invalid_value(
                 value_schema=value_schema,
                 current_value=current_value,
                 values_from_constraint=values_from_constraint,
             )
+            properties[property_name] = invalid_value
+            logger.debug(
+                f"Property {property_name} changed to {invalid_value} (received from "
+                f"get_invalid_value)"
+            )
             return properties
+        logger.warning("get_invalidated_data returned unchanged properties")
         return properties  # pragma: no cover
+
+    def as_dict(self) -> Dict[Any, Any]:
+        """Return the dict representation of the Dto."""
+        return asdict(self)

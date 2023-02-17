@@ -4,6 +4,7 @@ Library         OpenApiLibCore
 ...                 origin=${origin}
 ...                 base_path=${EMPTY}
 ...                 mappings_path=${root}/tests/user_implemented/custom_user_mappings.py
+...                 default_id_property_name=identification
 Variables       ${root}/tests/variables.py
 
 
