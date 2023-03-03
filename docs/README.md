@@ -8,7 +8,8 @@ of other Robot Framework libraries for API testing based on the information in
 an OpenAPI document (also known as Swagger document).
 This document explains how to use the OpenApiLibCore library.
 
-My RoboCon 2022 talk about OpenApiDriver and OpenApiLibCore can be found [here](https://www.youtube.com/watch?v=7YWZEHxk9Ps)
+My RoboCon 2022 talk about OpenApiDriver and OpenApiLibCore can be found
+[here](https://www.youtube.com/watch?v=7YWZEHxk9Ps)
 
 For more information about Robot Framework, see http://robotframework.org.
 

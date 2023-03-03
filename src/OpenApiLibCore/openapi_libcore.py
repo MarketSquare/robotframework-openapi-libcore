@@ -1,12 +1,15 @@
 """
-# OpenApiLibCore for Robot Framework®
+# OpenApiLibCore for Robot Framework
 
 The OpenApiLibCore library is a utility library that is meant to simplify creation
 of other Robot Framework libraries for API testing based on the information in
 an OpenAPI document (also known as Swagger document).
 This document explains how to use the OpenApiLibCore library.
 
-For more information about Robot Framework®, see http://robotframework.org.
+My RoboCon 2022 talk about OpenApiDriver and OpenApiLibCore can be found
+[here](https://www.youtube.com/watch?v=7YWZEHxk9Ps)
+
+For more information about Robot Framework, see http://robotframework.org.
 
 ---
 
@@ -111,6 +114,7 @@ There are currently a number of limitations to supported API structures, support
 data types and properties. The following list details the most important ones:
 - Only JSON request and response bodies are supported.
 - No support for per-endpoint authorization levels.
+- Parsing of OAS 3.1 documents is supported by the parsing tools, but runtime behavior is untested.
 
 """
 
