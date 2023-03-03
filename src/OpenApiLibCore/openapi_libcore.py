@@ -797,7 +797,9 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         for key, value in dto_data.items():
             required_properties = content_schema.get("required", [])
             if key in required_properties:
-                fields.append((key, type(value)))
+                # The fields list is used to create a dataclass, so non-default fields
+                # must go before fields with a default
+                fields.insert(0, ((key, type(value))))
             else:
                 fields.append((key, type(value), field(default=None)))  # type: ignore[arg-type]
         return fields
@@ -817,12 +819,14 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
     @staticmethod
     def get_content_schema(body_spec: Dict[str, Any]) -> Dict[str, Any]:
         """Get the content schema from the requestBody spec."""
-        # Content should be a single key/value entry, so use tuple assignment
-        (content_type,) = body_spec["content"].keys()
-        if content_type != "application/json":
+        content_types = body_spec["content"].keys()
+        if "application/json" not in content_types:
             # At present no supported for other types.
-            raise NotImplementedError(f"content_type '{content_type}' not supported")
-        content_schema = body_spec["content"][content_type]["schema"]
+            raise NotImplementedError(
+                f"Only content type 'application/json' is supported. "
+                f"Content types definded in the spec are '{content_types}'."
+            )
+        content_schema = body_spec["content"]["application/json"]["schema"]
         resolved_schema: Dict[str, Any] = resolve_schema(content_schema)
         return resolved_schema
 
