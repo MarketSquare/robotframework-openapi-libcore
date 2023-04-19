@@ -116,7 +116,7 @@ This Wagegroup also has a number of required properties: name and hourly rate.
 
 ---
 
-### `IdReference`
+### `IdDependency`
 > *The value for this propery must the the `id` of another resource*
 
 To add an Employee, a `wagegroup_id` is required, the `id` of a Wagegroup resource that is already present in the system.
@@ -154,7 +154,7 @@ This `error_code` should be described as one of the `responses` in the openapi d
 
 ---
 
-### `IdDependency`
+### `IdReference`
 > *This resource may not be DELETED if another resource refers to it*
 
 If an Employee has been added to the system, this Employee refers to the `id` of a Wagegroup for its required `employee_number` property.
