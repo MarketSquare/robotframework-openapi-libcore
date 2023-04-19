@@ -160,6 +160,7 @@ from OpenApiLibCore.dto_utils import (
     get_dto_class,
     get_id_property_name,
 )
+from OpenApiLibCore.oas_cache import PARSER_CACHE
 from OpenApiLibCore.value_utils import FAKE, IGNORE
 
 run_keyword = BuiltIn().run_keyword
@@ -473,12 +474,31 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             def recursion_limit_handler(limit, refstring, recursions):
                 return recursion_default
 
-            parser = ResolvingParser(
-                source,
-                backend="openapi-spec-validator",
-                recursion_limit=recursion_limit,
-                recursion_limit_handler=recursion_limit_handler,
-            )
+            # Since parsing of the OAS and creating the Spec can take a long time,
+            # they are cached. This is done by storing them in an imported module that
+            # will have a global scope due to how Python works. This ensures that in a
+            # Suite of Suites where multiple Suites use the same `source`, that OAS is
+            # only parsed / loaded once.
+            parser, validation_spec = PARSER_CACHE.get(source, (None, None))
+            if parser is None:
+                parser = ResolvingParser(
+                    source,
+                    backend="openapi-spec-validator",
+                    recursion_limit=recursion_limit,
+                    recursion_limit_handler=recursion_limit_handler,
+                )
+
+                if parser.specification is None:  # pragma: no cover
+                    BuiltIn().fatal_error(
+                        "Source was loaded, but no specification was present after parsing."
+                    )
+
+                validation_spec = Spec.create(parser.specification)
+                PARSER_CACHE[source] = (parser, validation_spec)
+
+            self._openapi_spec: Dict[str, Any] = parser.specification
+            self.validation_spec = validation_spec
+
         except ResolutionError as exception:
             BuiltIn().fatal_error(
                 f"ResolutionError while trying to load openapi spec: {exception}"
@@ -487,12 +507,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             BuiltIn().fatal_error(
                 f"ValidationError while trying to load openapi spec: {exception}"
             )
-        if (openapi_spec := parser.specification) is None:  # pragma: no cover
-            BuiltIn().fatal_error(
-                "Source was loaded, but no specification was present after parsing."
-            )
-        self._openapi_spec: Dict[str, Any] = openapi_spec
-        self.validation_spec = Spec.create(self.openapi_spec)
+
         self.session = Session()
         self.origin = origin
         self.base_url = f"{self.origin}{base_path}"
