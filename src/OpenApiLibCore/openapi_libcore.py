@@ -976,6 +976,8 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             value_schema = schema["properties"][property_name]
             value_schema = resolve_schema(value_schema)
             property_type = value_schema["type"]
+            if value_schema.get("readOnly", False):
+                continue
             if constrained_values := get_constrained_values(property_name):
                 # do not add properties that are configured to be ignored
                 if IGNORE in constrained_values:
