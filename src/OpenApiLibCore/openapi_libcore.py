@@ -640,8 +640,9 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         else:
             id_property, id_transformer = mapping
 
-        if response.status_code == 405:
-            # For endpoints that do no support POST, try to get an existing id using GET
+        if not response.ok:
+            # If a new resource cannot be created using POST, try to retrieve a
+            # valid id using a GET request.
             try:
                 valid_id = choice(run_keyword("get_ids_from_url", url))
                 return id_transformer(valid_id)
@@ -649,10 +650,6 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 raise AssertionError(
                     f"Failed to get a valid id using GET on {url}"
                 ) from exception
-
-        assert (
-            response.ok
-        ), f"get_valid_id_for_endpoint received status_code {response.status_code}"
 
         response_data = response.json()
         if prepared_body := response.request.body:
