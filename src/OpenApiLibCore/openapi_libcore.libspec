@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<keywordspec name="OpenApiLibCore" type="LIBRARY" format="HTML" scope="SUITE" generated="2023-04-20T08:42:44+00:00" specversion="4" source="C:\GitHub\robotframework-openapi-libcore\src\OpenApiLibCore\openapi_libcore.py" lineno="380">
-<version>1.8.5</version>
+<keywordspec name="OpenApiLibCore" type="LIBRARY" format="HTML" scope="SUITE" generated="2023-06-01T13:47:36+00:00" specversion="4" source="C:\GitHub\robotframework-openapi-libcore\src\OpenApiLibCore\openapi_libcore.py" lineno="379">
+<version>1.8.6</version>
 <doc>&lt;p&gt;Main class providing the keywords and core logic to interact with an OpenAPI server.&lt;/p&gt;
 &lt;p&gt;Visit the &lt;a href="https://github.com/MarketSquare/robotframework-openapi-libcore"&gt;library page&lt;/a&gt; for an introduction.&lt;/p&gt;</doc>
 <tags>
 </tags>
 <inits>
-<init name="__init__" lineno="388">
+<init name="__init__" lineno="387">
 <arguments repr="source: str, origin: str = , base_path: str = , mappings_path: str | Path = , username: str = , password: str = , security_token: str = , auth: AuthBase | None = None, cert: str | Tuple[str, str] | None = None, extra_headers: Dict[str, str] | None = None, invalid_property_default_response: int = 422, recursion_limit: int = 1, recursion_default: Any = {}, faker_locale: str | List[str] | None = None, default_id_property_name: str = id">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="source: str">
 <name>source</name>
@@ -125,8 +125,8 @@
 </init>
 </inits>
 <keywords>
-<kw name="Authorized Request" lineno="1360">
-<arguments repr="url: str, method: str, params: Dict[str, Any] | None = None, headers: Dict[str, str] | None = None, json_data: Dict[str, Any] | None = None">
+<kw name="Authorized Request" lineno="1359">
+<arguments repr="url: str, method: str, params: Dict[str, Any] | None = None, headers: Dict[str, str] | None = None, json_data: Dict[str, Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None] | List[Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None] | str | int | float | bool | None = None">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
 <type typedoc="string">str</type>
@@ -147,9 +147,14 @@
 <type typedoc="None">None</type>
 <default>None</default>
 </arg>
-<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json_data: Dict[str, Any] | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json_data: Dict[str, Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None] | List[Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None] | str | int | float | bool | None = None">
 <name>json_data</name>
-<type typedoc="dictionary">Dict[str, Any]</type>
+<type typedoc="dictionary">Dict[str, Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None]</type>
+<type typedoc="list">List[Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None]</type>
+<type typedoc="string">str</type>
+<type typedoc="integer">int</type>
+<type typedoc="float">float</type>
+<type typedoc="boolean">bool</type>
 <type typedoc="None">None</type>
 <default>None</default>
 </arg>
@@ -158,7 +163,7 @@
 &lt;p&gt;&amp;gt; Note: provided username / password or auth objects take precedence over token based security&lt;/p&gt;</doc>
 <shortdoc>Perform a request using the security token or authentication set in the library.</shortdoc>
 </kw>
-<kw name="Ensure In Use" lineno="1264">
+<kw name="Ensure In Use" lineno="1263">
 <arguments repr="url: str, resource_relation: IdReference">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
@@ -172,7 +177,7 @@
 <doc>&lt;p&gt;Ensure that the (right-most) &lt;span class="name"&gt;id&lt;/span&gt; of the resource referenced by the &lt;span class="name"&gt;url&lt;/span&gt; is used by the resource defined by the &lt;span class="name"&gt;resource_relation&lt;/span&gt;.&lt;/p&gt;</doc>
 <shortdoc>Ensure that the (right-most) `id` of the resource referenced by the `url` is used by the resource defined by the `resource_relation`.</shortdoc>
 </kw>
-<kw name="Get Ids From Url" lineno="699">
+<kw name="Get Ids From Url" lineno="698">
 <arguments repr="url: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
@@ -182,7 +187,7 @@
 <doc>&lt;p&gt;Perform a GET request on the &lt;span class="name"&gt;url&lt;/span&gt; and return the list of resource &lt;span class="name"&gt;ids&lt;/span&gt; from the response.&lt;/p&gt;</doc>
 <shortdoc>Perform a GET request on the `url` and return the list of resource `ids` from the response.</shortdoc>
 </kw>
-<kw name="Get Invalid Json Data" lineno="1043">
+<kw name="Get Invalid Json Data" lineno="1042">
 <arguments repr="url: str, method: str, status_code: int, request_data: RequestData">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
@@ -205,7 +210,7 @@
 &lt;p&gt;&amp;gt; Note: applicable UniquePropertyValueConstraint and IdReference Relations are considered before changes to &lt;span class="name"&gt;json_data&lt;/span&gt; are made.&lt;/p&gt;</doc>
 <shortdoc>Return `json_data` based on the `dto` on the `request_data` that will cause the provided `status_code` for the `method` operation on the `url`.</shortdoc>
 </kw>
-<kw name="Get Invalidated Parameters" lineno="1091">
+<kw name="Get Invalidated Parameters" lineno="1090">
 <arguments repr="status_code: int, request_data: RequestData">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="status_code: int">
 <name>status_code</name>
@@ -219,7 +224,7 @@
 <doc>&lt;p&gt;Returns a version of &lt;span class="name"&gt;params, headers&lt;/span&gt; as present on &lt;span class="name"&gt;request_data&lt;/span&gt; that has been modified to cause the provided &lt;span class="name"&gt;status_code&lt;/span&gt;.&lt;/p&gt;</doc>
 <shortdoc>Returns a version of `params, headers` as present on `request_data` that has been modified to cause the provided `status_code`.</shortdoc>
 </kw>
-<kw name="Get Invalidated Url" lineno="1009">
+<kw name="Get Invalidated Url" lineno="1008">
 <arguments repr="valid_url: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="valid_url: str">
 <name>valid_url</name>
@@ -230,7 +235,7 @@
 &lt;p&gt;Raises ValueError if the valid_url cannot be invalidated.&lt;/p&gt;</doc>
 <shortdoc>Return an url with all the path parameters in the `valid_url` replaced by a random UUID.</shortdoc>
 </kw>
-<kw name="Get Json Data For Dto Class" lineno="919">
+<kw name="Get Json Data For Dto Class" lineno="918">
 <arguments repr="schema: Dict[str, Any], dto_class: Dto | Type[Dto], operation_id: str = ">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="schema: Dict[str, Any]">
 <name>schema</name>
@@ -250,7 +255,7 @@
 <doc>&lt;p&gt;Generate a valid (json-compatible) dict for all the &lt;span class="name"&gt;dto_class&lt;/span&gt; properties.&lt;/p&gt;</doc>
 <shortdoc>Generate a valid (json-compatible) dict for all the `dto_class` properties.</shortdoc>
 </kw>
-<kw name="Get Json Data With Conflict" lineno="1308">
+<kw name="Get Json Data With Conflict" lineno="1307">
 <arguments repr="url: str, method: str, dto: Dto, conflict_status_code: int">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
@@ -272,7 +277,7 @@
 <doc>&lt;p&gt;Return &lt;span class="name"&gt;json_data&lt;/span&gt; based on the &lt;span class="name"&gt;UniquePropertyValueConstraint&lt;/span&gt; that must be returned by the &lt;span class="name"&gt;get_relations&lt;/span&gt; implementation on the &lt;span class="name"&gt;dto&lt;/span&gt; for the given &lt;span class="name"&gt;conflict_status_code&lt;/span&gt;.&lt;/p&gt;</doc>
 <shortdoc>Return `json_data` based on the `UniquePropertyValueConstraint` that must be returned by the `get_relations` implementation on the `dto` for the given `conflict_status_code`.</shortdoc>
 </kw>
-<kw name="Get Parameterized Endpoint From Url" lineno="1031">
+<kw name="Get Parameterized Endpoint From Url" lineno="1030">
 <arguments repr="url: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
@@ -282,7 +287,7 @@
 <doc>&lt;p&gt;Return the endpoint as found in the &lt;span class="name"&gt;paths&lt;/span&gt; section based on the given &lt;span class="name"&gt;url&lt;/span&gt;.&lt;/p&gt;</doc>
 <shortdoc>Return the endpoint as found in the `paths` section based on the given `url`.</shortdoc>
 </kw>
-<kw name="Get Request Data" lineno="739">
+<kw name="Get Request Data" lineno="738">
 <arguments repr="endpoint: str, method: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="endpoint: str">
 <name>endpoint</name>
@@ -296,7 +301,7 @@
 <doc>&lt;p&gt;Return an object with valid request data for body, headers and query params.&lt;/p&gt;</doc>
 <shortdoc>Return an object with valid request data for body, headers and query params.</shortdoc>
 </kw>
-<kw name="Get Valid Id For Endpoint" lineno="611">
+<kw name="Get Valid Id For Endpoint" lineno="610">
 <arguments repr="endpoint: str, method: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="endpoint: str">
 <name>endpoint</name>
@@ -311,7 +316,7 @@
 &lt;p&gt;To prevent resource conflicts with other test cases, a new resource is created (POST) if possible.&lt;/p&gt;</doc>
 <shortdoc>Support keyword that returns the `id` for an existing resource at `endpoint`.</shortdoc>
 </kw>
-<kw name="Get Valid Url" lineno="571">
+<kw name="Get Valid Url" lineno="570">
 <arguments repr="endpoint: str, method: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="endpoint: str">
 <name>endpoint</name>
@@ -331,6 +336,19 @@
 <datatypes>
 </datatypes>
 <typedocs>
+<type name="boolean" type="Standard">
+<doc>&lt;p&gt;Strings &lt;code&gt;TRUE&lt;/code&gt;, &lt;code&gt;YES&lt;/code&gt;, &lt;code&gt;ON&lt;/code&gt; and &lt;code&gt;1&lt;/code&gt; are converted to Boolean &lt;code&gt;True&lt;/code&gt;, the empty string as well as strings &lt;code&gt;FALSE&lt;/code&gt;, &lt;code&gt;NO&lt;/code&gt;, &lt;code&gt;OFF&lt;/code&gt; and &lt;code&gt;0&lt;/code&gt; are converted to Boolean &lt;code&gt;False&lt;/code&gt;, and the string &lt;code&gt;NONE&lt;/code&gt; is converted to the Python &lt;code&gt;None&lt;/code&gt; object. Other strings and other accepted values are passed as-is, allowing keywords to handle them specially if needed. All string comparisons are case-insensitive.&lt;/p&gt;
+&lt;p&gt;Examples: &lt;code&gt;TRUE&lt;/code&gt; (converted to &lt;code&gt;True&lt;/code&gt;), &lt;code&gt;off&lt;/code&gt; (converted to &lt;code&gt;False&lt;/code&gt;), &lt;code&gt;example&lt;/code&gt; (used as-is)&lt;/p&gt;</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Authorized Request</usage>
+</usages>
+</type>
 <type name="dictionary" type="Standard">
 <doc>&lt;p&gt;Strings must be Python &lt;a href="https://docs.python.org/library/stdtypes.html#dict"&gt;dictionary&lt;/a&gt; literals. They are converted to actual dictionaries using the &lt;a href="https://docs.python.org/library/ast.html#ast.literal_eval"&gt;ast.literal_eval&lt;/a&gt; function. They can contain any values &lt;code&gt;ast.literal_eval&lt;/code&gt; supports, including dictionaries and other containers.&lt;/p&gt;
 &lt;p&gt;If the type has nested types like &lt;code&gt;dict[str, int]&lt;/code&gt;, items are converted to those types automatically. This in new in Robot Framework 6.0.&lt;/p&gt;
@@ -345,6 +363,18 @@
 <usage>Get Json Data For Dto Class</usage>
 </usages>
 </type>
+<type name="float" type="Standard">
+<doc>&lt;p&gt;Conversion is done using Python's &lt;a href="https://docs.python.org/library/functions.html#float"&gt;float&lt;/a&gt; built-in function.&lt;/p&gt;
+&lt;p&gt;Starting from RF 4.1, spaces and underscores can be used as visual separators for digit grouping purposes.&lt;/p&gt;
+&lt;p&gt;Examples: &lt;code&gt;3.14&lt;/code&gt;, &lt;code&gt;2.9979e8&lt;/code&gt;, &lt;code&gt;10 000.000 01&lt;/code&gt;&lt;/p&gt;</doc>
+<accepts>
+<type>string</type>
+<type>Real</type>
+</accepts>
+<usages>
+<usage>Authorized Request</usage>
+</usages>
+</type>
 <type name="integer" type="Standard">
 <doc>&lt;p&gt;Conversion is done using Python's &lt;a href="https://docs.python.org/library/functions.html#int"&gt;int&lt;/a&gt; built-in function. Floating point numbers are accepted only if they can be represented as integers exactly. For example, &lt;code&gt;1.0&lt;/code&gt; is accepted and &lt;code&gt;1.1&lt;/code&gt; is not.&lt;/p&gt;
 &lt;p&gt;Starting from RF 4.1, it is possible to use hexadecimal, octal and binary numbers by prefixing values with &lt;code&gt;0x&lt;/code&gt;, &lt;code&gt;0o&lt;/code&gt; and &lt;code&gt;0b&lt;/code&gt;, respectively.&lt;/p&gt;
@@ -356,6 +386,7 @@
 </accepts>
 <usages>
 <usage>__init__</usage>
+<usage>Authorized Request</usage>
 <usage>Get Invalid Json Data</usage>
 <usage>Get Invalidated Parameters</usage>
 <usage>Get Json Data With Conflict</usage>
@@ -371,6 +402,7 @@
 </accepts>
 <usages>
 <usage>__init__</usage>
+<usage>Authorized Request</usage>
 </usages>
 </type>
 <type name="None" type="Standard">
