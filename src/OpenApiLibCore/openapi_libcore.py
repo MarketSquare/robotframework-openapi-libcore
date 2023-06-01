@@ -161,10 +161,9 @@ from OpenApiLibCore.dto_utils import (
     get_id_property_name,
 )
 from OpenApiLibCore.oas_cache import PARSER_CACHE
-from OpenApiLibCore.value_utils import FAKE, IGNORE
+from OpenApiLibCore.value_utils import FAKE, IGNORE, JSON
 
 run_keyword = BuiltIn().run_keyword
-
 
 logger = getLogger(__name__)
 
@@ -710,7 +709,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             request_data.get_required_params(),
             request_data.get_required_headers(),
         )
-        assert response.ok
+        response.raise_for_status()
         response_data: Union[Dict[str, Any], List[Dict[str, Any]]] = response.json()
 
         # determine the property name to use
@@ -1363,7 +1362,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         method: str,
         params: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
-        json_data: Optional[Dict[str, Any]] = None,
+        json_data: Optional[JSON] = None,
     ) -> Response:
         """
         Perform a request using the security token or authentication set in the library.

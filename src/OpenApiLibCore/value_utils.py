@@ -9,6 +9,8 @@ from typing import Any, Dict, List, Optional, Union
 import faker
 import rstr
 
+JSON = Union[Dict[str, "JSON"], List["JSON"], str, int, float, bool, None]
+
 logger = getLogger(__name__)
 
 IGNORE = object()
