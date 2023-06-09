@@ -28,7 +28,7 @@ requests = "^2.27"
 prance = {version = "^0.22", extras = ["CLI"]}
 Faker = ">=11"
 rstr = "^3"
-openapi-core = "^0.16"
+openapi-core = "^0.17.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"
