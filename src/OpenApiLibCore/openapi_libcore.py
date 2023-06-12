@@ -130,16 +130,16 @@ from random import choice
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union
 from uuid import uuid4
 
-from openapi_core import Spec
+from openapi_core import Spec, openapi_response_validator
 from openapi_core.contrib.requests import (
     RequestsOpenAPIRequest,
     RequestsOpenAPIResponse,
 )
-from openapi_core.validation.response import openapi_response_validator
 from prance import ResolvingParser, ValidationError
 from prance.util.url import ResolutionError
 from requests import Response, Session
 from requests.auth import AuthBase, HTTPBasicAuth
+from requests.cookies import RequestsCookieJar as CookieJar
 from robot.api.deco import keyword, library
 from robot.libraries.BuiltIn import BuiltIn
 
@@ -390,19 +390,24 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         origin: str = "",
         base_path: str = "",
         mappings_path: Union[str, Path] = "",
+        invalid_property_default_response: int = 422,
+        default_id_property_name: str = "id",
+        faker_locale: Optional[Union[str, List[str]]] = None,
+        recursion_limit: int = 1,
+        recursion_default: Any = {},
         username: str = "",
         password: str = "",
         security_token: str = "",
         auth: Optional[AuthBase] = None,
         cert: Optional[Union[str, Tuple[str, str]]] = None,
+        verify_tls: Optional[Union[bool, str]] = True,
         extra_headers: Optional[Dict[str, str]] = None,
-        invalid_property_default_response: int = 422,
-        recursion_limit: int = 1,
-        recursion_default: Any = {},
-        faker_locale: Optional[Union[str, List[str]]] = None,
-        default_id_property_name: str = "id",
+        cookies: Optional[Union[Dict[str, str], CookieJar]] = None,
+        proxies: Optional[Dict[str, str]] = None,
     ) -> None:
         """
+        == Base parameters ==
+
         === source ===
         An absolute path to an openapi.json or openapi.yaml file or an url to such a file.
 
@@ -410,11 +415,52 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         The server (and port) of the target server. E.g. ``https://localhost:8000``
 
         === base_path ===
-        The routing between ``origin`` and the endpoints as found in the ``paths`` in the
-        openapi document. E.g. ``/petshop/v2``.
+        The routing between ``origin`` and the endpoints as found in the ``paths``
+        section in the openapi document.
+        E.g. ``/petshop/v2``.
+
+        == API-specific configurations ==
 
         === mappings_path ===
-        See [https://marketsquare.github.io/robotframework-openapi-libcore/advanced_use.html | here].
+        See [https://marketsquare.github.io/robotframework-openapi-libcore/advanced_use.html | this page]
+        for an in-depth explanation.
+
+        === invalid_property_default_response ===
+        The default response code for requests with a JSON body that does not comply
+        with the schema.
+        Example: a value outside the specified range or a string value
+        for a property defined as integer in the schema.
+
+        === default_id_property_name ===
+        The default name for the property that identifies a resource (i.e. a unique
+        entity) within the API.
+        The default value for this property name is ``id``.
+        If the target API uses a different name for all the resources within the API,
+        you can configure it globally using this property.
+
+        If different property names are used for the unique identifier for different
+        types of resources, an ``ID_MAPPING`` can be implemented using the ``mappings_path``.
+
+        === faker_locale ===
+        A locale string or list of locale strings to pass to the Faker library to be
+        used in generation of string data for supported format types.
+
+        == Parsing parameters ==
+
+        === recursion_limit ===
+        The recursion depth to which to fully parse recursive references before the
+        `recursion_default` is used to end the recursion.
+
+        === recursion_default ===
+        The value that is used instead of the referenced schema when the
+        `recursion_limit` has been reached.
+        The default `{}` represents an empty object in JSON.
+        Depending on schema definitions, this may cause schema validation errors.
+        If this is the case, 'None' (``${NONE}`` in Robot Framework) or an empty list
+        can be tried as an alternative.
+
+        == Security-related parameters ==
+        _Note: these parameters are equivalent to those in the ``requests`` library._
 
         === username ===
         The username to be used for Basic Authentication.
@@ -426,47 +472,30 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         The token to be used for token based security using the ``Authorization`` header.
 
         === auth ===
-        A [https://requests.readthedocs.io/en/latest/api/#authentication | requests AuthBase instance]
+        A [https://requests.readthedocs.io/en/latest/api/#authentication | requests ``AuthBase`` instance]
         to be used for authentication instead of the ``username`` and ``password``.
 
         === cert ===
         The SSL certificate to use with all requests.
-        If string: the path to ssl client cert file (.pem). If tuple, ('cert', 'key') pair.
+        If string: the path to ssl client cert file (.pem).
+        If tuple: the ('cert', 'key') pair.
+
+        === verify_tls ===
+        Whether or not to verify the TLS / SSL certificate of the server.
+        If boolean: whether or not to verify the server TLS certificate.
+        If string: path to a CA bundle to use for verification.
 
         === extra_headers ===
         A dictionary with extra / custom headers that will be send with every request.
         This parameter can be used to send headers that are not documented in the
         openapi document or to provide an API-key.
 
-        === invalid_property_default_response ===
-        The default response code for requests with a JSON body that does not comply with
-        the schema. Example: a value outside the specified range or a string value for a
-        property defined as integer in the schema.
+        === cookies ===
+        A dictionary or [https://docs.python.org/3/library/http.cookiejar.html#http.cookiejar.CookieJar | CookieJar object]
+        to send with all requests.
 
-        === recursion_limit ===
-        The recursion depth to which to fully parse recursive references before the
-        `recursion_default` is used to end the recursion.
-
-        === recursion_default ===
-        The value that is used instead of the referenced schema when the
-        `recursion_limit` has been reached. The default `{}` represents an empty
-        object in JSON. Depending on schema definitions, this may cause schema
-        validation errors. If this is the case, `None` (`${NONE}` in Robot Framework)
-        can be tried as an alternative.
-
-        === faker_locale ===
-        A locale string or list of locale strings to pass to Faker to be used in
-        generation of string data for supported format types.
-
-        === default_id_property_name ===
-        The default name for the property that identifies a resource (i.e. a unique
-        entiry) within the API.
-        The default value for this property name is `id`.
-        If the target API uses a different name for all the resources within the API,
-        you can configure it globally using this property.
-
-        If different property names are used for the unique identifier for different
-        types of resources, an `ID_MAPPING` can be implemented in the `mappings_path`.
+        === proxies ===
+        A dictionary of 'protocol': 'proxy url' to use for all requests.
         """
         try:
 
@@ -516,8 +545,15 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         self.auth = auth
         if username and password:
             self.auth = HTTPBasicAuth(username, password)
+        # Robot Framework does not allow users to create tuples and requests
+        # does not accept lists, so perform the conversion here
+        if isinstance(cert, list):
+            cert = tuple(cert)
         self.cert = cert
+        self.verify = verify_tls
         self.extra_headers = extra_headers
+        self.cookies = cookies
+        self.proxies = proxies
         self.invalid_property_default_response = invalid_property_default_response
         if mappings_path and str(mappings_path) != ".":
             mappings_path = Path(mappings_path)
@@ -1384,9 +1420,11 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             params=params,
             headers=headers,
             json=json_data,
+            cookies=self.cookies,
             auth=self.auth,
+            proxies=self.proxies,
+            verify=self.verify,
             cert=self.cert,
-            verify=False,
         )
         logger.debug(f"Response text: {response.text}")
         return response
