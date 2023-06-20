@@ -638,7 +638,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                     "get_valid_id_for_endpoint", type_endpoint, method
                 )
                 endpoint_parts[index] = existing_id
-        resolved_endpoint = "/".join(endpoint_parts)
+        resolved_endpoint = "/".join([str(x) for x in endpoint_parts])
         url = f"{self.base_url}{resolved_endpoint}"
         return url
 
