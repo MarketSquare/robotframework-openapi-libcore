@@ -634,16 +634,18 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             if part.startswith("{") and part.endswith("}"):
                 type_endpoint_parts = endpoint_parts[slice(index)]
                 type_endpoint = "/".join(type_endpoint_parts)
-                existing_id: str = run_keyword(
+                existing_id: Union[str, int, float] = run_keyword(
                     "get_valid_id_for_endpoint", type_endpoint, method
                 )
-                endpoint_parts[index] = existing_id
+                endpoint_parts[index] = str(existing_id)
         resolved_endpoint = "/".join(endpoint_parts)
         url = f"{self.base_url}{resolved_endpoint}"
         return url
 
     @keyword
-    def get_valid_id_for_endpoint(self, endpoint: str, method: str) -> str:
+    def get_valid_id_for_endpoint(
+        self, endpoint: str, method: str
+    ) -> Union[str, int, float]:
         """
         Support keyword that returns the `id` for an existing resource at `endpoint`.
 
