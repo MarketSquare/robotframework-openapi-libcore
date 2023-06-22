@@ -65,8 +65,8 @@ def tests(context):
 
 @task
 def lint(context):
-    subprocess.run(f"mypy {ROOT}", shell=True, check=False)
-    subprocess.run(f"pylint {ROOT}/src/OpenApiLibCore", shell=True, check=False)
+    subprocess.run(f"mypy {ROOT}/src", shell=True, check=False)
+    subprocess.run(f"pylint {ROOT}/src", shell=True, check=False)
     subprocess.run(f"robocop {ROOT}/tests/suites", shell=True, check=False)
 
 
