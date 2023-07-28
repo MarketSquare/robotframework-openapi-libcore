@@ -121,13 +121,13 @@ data types and properties. The following list details the most important ones:
 import json as _json
 import sys
 from copy import deepcopy
-from dataclasses import Field, asdict, dataclass, field, make_dataclass
+from dataclasses import Field, dataclass, field, make_dataclass
 from functools import cached_property
 from itertools import zip_longest
 from logging import getLogger
 from pathlib import Path
 from random import choice
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 from uuid import uuid4
 
 from openapi_core import Spec, openapi_response_validator
@@ -135,6 +135,7 @@ from openapi_core.contrib.requests import (
     RequestsOpenAPIRequest,
     RequestsOpenAPIResponse,
 )
+from openapi_core.unmarshalling.response.datatypes import ResponseUnmarshalResult
 from prance import ResolvingParser, ValidationError
 from prance.util.url import ResolutionError
 from requests import Response, Session
@@ -153,6 +154,7 @@ from OpenApiLibCore.dto_base import (
     PropertyValueConstraint,
     Relation,
     UniquePropertyValueConstraint,
+    resolve_schema,
 )
 from OpenApiLibCore.dto_utils import (
     DEFAULT_ID_PROPERTY_NAME,
@@ -168,46 +170,16 @@ run_keyword = BuiltIn().run_keyword
 logger = getLogger(__name__)
 
 
-def resolve_schema(schema: Dict[str, Any]) -> Dict[str, Any]:
-    """Helper method to resolve allOf, anyOf and oneOf instances in a schema."""
-    # schema is mutable, so deepcopy to prevent mutation of original schema argument
-    resolved_schema: Dict[str, Any] = deepcopy(schema)
-    if schema_parts := resolved_schema.pop("allOf", None):
-        for schema_part in schema_parts:
-            resolved_part = resolve_schema(schema_part)
-            resolved_schema = merge_schemas(resolved_schema, resolved_part)
-    # TODO: validate against real-world examples
-    if schema_parts := resolved_schema.pop("anyOf", None):
-        for schema_part in schema_parts:
-            resolved_part = resolve_schema(schema_part)
-            resolved_schema = merge_schemas(resolved_schema, resolved_part)
-    if schema_parts := resolved_schema.pop("oneOf", None):
-        selected_schema_part = choice(schema_parts)
-        resolved_part = resolve_schema(selected_schema_part)
-        resolved_schema = merge_schemas(resolved_schema, resolved_part)
-    return resolved_schema
-
-
-def merge_schemas(first: Dict[str, Any], second: Dict[str, Any]) -> Dict[str, Any]:
-    """Helper method to merge two schemas, recursively."""
-    merged_schema = deepcopy(first)
-    for key, value in second.items():
-        # for existing keys, merge dict and list values, leave others unchanged
-        if key in merged_schema.keys():
-            if isinstance(value, dict):
-                # if the key holds a dict, merge the values (e.g. 'properties')
-                merged_schema[key].update(value)
-            elif isinstance(value, list):
-                # if the key holds a list, extend the values (e.g. 'required')
-                merged_schema[key].extend(value)
-            else:
-                logger.debug(
-                    f"key '{key}' with value '{merged_schema[key]}' not "
-                    f"updated to '{value}'"
-                )
-        else:
-            merged_schema[key] = value
-    return merged_schema
+def get_safe_key(key: str) -> str:
+    """
+    Helper function to convert a valid JSON property name to a string that can be used
+    as a Python variable or function / method name.
+    """
+    key = key.replace("-", "_")
+    key = key.replace("@", "_")
+    if key[0].isdigit():
+        key = f"_{key}"
+    return key
 
 
 @dataclass
@@ -231,7 +203,7 @@ class RequestData:
     params: Dict[str, Any] = field(default_factory=dict)
     headers: Dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # prevent modification by reference
         self.dto_schema = deepcopy(self.dto_schema)
         self.parameters = deepcopy(self.parameters)
@@ -241,22 +213,26 @@ class RequestData:
     @property
     def has_optional_properties(self) -> bool:
         """Whether or not the dto data (json data) contains optional properties."""
-        properties = asdict(self.dto).keys()
-        in_required_func: Callable[[str], bool] = lambda x: x in self.dto_schema.get(
-            "required", []
-        )
-        return not all(map(in_required_func, properties))
+
+        def is_required_property(property_name: str) -> bool:
+            return property_name in self.dto_schema.get("required", [])
+
+        properties = (self.dto.as_dict()).keys()
+        return not all(map(is_required_property, properties))
 
     @property
     def has_optional_params(self) -> bool:
         """Whether or not any of the query parameters are optional."""
-        optional_params = [
-            p.get("name")
-            for p in self.parameters
-            if p.get("in") == "query" and not p.get("required")
-        ]
-        in_optional_params: Callable[[str], bool] = lambda x: x in optional_params
-        return any(map(in_optional_params, self.params))
+
+        def is_optional_param(query_param: str) -> bool:
+            optional_params = [
+                p.get("name")
+                for p in self.parameters
+                if p.get("in") == "query" and not p.get("required")
+            ]
+            return query_param in optional_params
+
+        return any(map(is_optional_param, self.params))
 
     @cached_property
     def params_that_can_be_invalidated(self) -> Set[str]:
@@ -267,48 +243,60 @@ class RequestData:
         result = set()
         params = [h for h in self.parameters if h.get("in") == "query"]
         for param in params:
-            schema: Dict[str, Any] = param["schema"]
-            # any basic non-string type can be invalidated by replacing with a string
-            if param["schema"]["type"] not in ["string", "array", "object"]:
-                result.add(param["name"])
-                continue
-            # enums, strings and arrays with boundaries can be invalidated
-            if set(schema.keys()).intersection(
-                {
-                    "enum",
-                    "minLength",
-                    "maxLength",
-                    "minItems",
-                    "maxItems",
-                }
-            ):
-                result.add(param["name"])
-                continue
             # required params can be omitted to invalidate a request
             if param["required"]:
                 result.add(param["name"])
                 continue
-            # an array of basic non-string type can be invalidated by replacing the
-            # items in the array with strings
-            if schema["type"] == "array" and schema["items"]["type"] not in [
-                "string",
-                "array",
-                "object",
-            ]:
-                result.add(param["name"])
-                continue
+
+            schema = resolve_schema(param["schema"])
+            if schema.get("type", None):
+                param_types = [schema]
+            else:
+                param_types = schema["types"]
+            for param_type in param_types:
+                # any basic non-string type except "null" can be invalidated by
+                # replacing it with a string
+                if param_type["type"] not in ["string", "array", "object", "null"]:
+                    result.add(param["name"])
+                    continue
+                # enums, strings and arrays with boundaries can be invalidated
+                if set(param_type.keys()).intersection(
+                    {
+                        "enum",
+                        "minLength",
+                        "maxLength",
+                        "minItems",
+                        "maxItems",
+                    }
+                ):
+                    result.add(param["name"])
+                    continue
+                # an array of basic non-string type can be invalidated by replacing the
+                # items in the array with strings
+                if param_type["type"] == "array" and param_type["items"][
+                    "type"
+                ] not in [
+                    "string",
+                    "array",
+                    "object",
+                    "null",
+                ]:
+                    result.add(param["name"])
         return result
 
     @property
     def has_optional_headers(self) -> bool:
         """Whether or not any of the headers are optional."""
-        optional_headers = [
-            p.get("name")
-            for p in self.parameters
-            if p.get("in") == "header" and not p.get("required")
-        ]
-        in_optional_headers: Callable[[str], bool] = lambda x: x in optional_headers
-        return any(map(in_optional_headers, self.headers))
+
+        def is_optional_header(header: str) -> bool:
+            optional_headers = [
+                p.get("name")
+                for p in self.parameters
+                if p.get("in") == "header" and not p.get("required")
+            ]
+            return header in optional_headers
+
+        return any(map(is_optional_header, self.headers))
 
     @cached_property
     def headers_that_can_be_invalidated(self) -> Set[str]:
@@ -319,43 +307,52 @@ class RequestData:
         result = set()
         headers = [h for h in self.parameters if h.get("in") == "header"]
         for header in headers:
-            schema: Dict[str, Any] = header["schema"]
-            # any basic non-string type can be invalidated by replacing with a string
-            if header["schema"]["type"] not in ["string", "array", "object"]:
-                result.add(header["name"])
-                continue
-            # enums, strings and arrays with boundaries can be invalidated
-            if set(schema.keys()).intersection(
-                {
-                    "enum",
-                    "minLength",
-                    "maxLength",
-                    "minItems",
-                    "maxItems",
-                }
-            ):
-                result.add(header["name"])
-                continue
             # required headers can be omitted to invalidate a request
             if header["required"]:
                 result.add(header["name"])
                 continue
-            # an array of basic non-string type can be invalidated by replacing the
-            # items in the array with strings
-            if schema["type"] == "array" and schema["items"]["type"] not in [
-                "string",
-                "array",
-                "object",
-            ]:
-                result.add(header["name"])
-                continue
+
+            schema = resolve_schema(header["schema"])
+            if schema.get("type", None):
+                header_types = [schema]
+            else:
+                header_types = schema["types"]
+            for header_type in header_types:
+                # any basic non-string type except "null" can be invalidated by
+                # replacing it with a string
+                if header_type["type"] not in ["string", "array", "object", "null"]:
+                    result.add(header["name"])
+                    continue
+                # enums, strings and arrays with boundaries can be invalidated
+                if set(header_type.keys()).intersection(
+                    {
+                        "enum",
+                        "minLength",
+                        "maxLength",
+                        "minItems",
+                        "maxItems",
+                    }
+                ):
+                    result.add(header["name"])
+                    continue
+                # an array of basic non-string type can be invalidated by replacing the
+                # items in the array with strings
+                if header_type["type"] == "array" and header_type["items"][
+                    "type"
+                ] not in [
+                    "string",
+                    "array",
+                    "object",
+                    "null",
+                ]:
+                    result.add(header["name"])
         return result
 
     def get_required_properties_dict(self) -> Dict[str, Any]:
         """Get the json-compatible dto data containing only the required properties."""
         required_properties = self.dto_schema.get("required", [])
         required_properties_dict: Dict[str, Any] = {}
-        for key, value in asdict(self.dto).items():
+        for key, value in (self.dto.as_dict()).items():
             if key in required_properties:
                 required_properties_dict[key] = value
         return required_properties_dict
@@ -491,7 +488,8 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         openapi document or to provide an API-key.
 
         === cookies ===
-        A dictionary or [https://docs.python.org/3/library/http.cookiejar.html#http.cookiejar.CookieJar | CookieJar object]
+        A dictionary or
+        [https://docs.python.org/3/library/http.cookiejar.html#http.cookiejar.CookieJar | CookieJar object]
         to send with all requests.
 
         === proxies ===
@@ -499,7 +497,9 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         """
         try:
 
-            def recursion_limit_handler(limit, refstring, recursions):
+            def recursion_limit_handler(
+                limit: int, refstring: str, recursions: Any
+            ) -> Any:
                 return recursion_default
 
             # Since parsing of the OAS and creating the Spec can take a long time,
@@ -585,7 +585,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
 
     def validate_response_vs_spec(
         self, request: RequestsOpenAPIRequest, response: RequestsOpenAPIResponse
-    ):
+    ) -> ResponseUnmarshalResult:
         """
         Validate the reponse for a given request against the OpenAPI Spec that is
         loaded during library initialization.
@@ -597,7 +597,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         )
 
     @property
-    def openapi_spec(self):
+    def openapi_spec(self) -> Dict[str, Any]:
         """Return a deepcopy of the parsed openapi document."""
         # protect the parsed openapi spec from being mutated by reference
         return deepcopy(self._openapi_spec)
@@ -652,6 +652,12 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         To prevent resource conflicts with other test cases, a new resource is created
         (POST) if possible.
         """
+
+        def dummy_transformer(
+            valid_id: Union[str, int, float]
+        ) -> Union[str, int, float]:
+            return valid_id
+
         method = method.lower()
         url: str = run_keyword("get_valid_url", endpoint, method)
         # Try to create a new resource to prevent conflicts caused by
@@ -673,7 +679,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             id_property = mapping
             # set the transformer to a dummy callable that returns the original value so
             # the transformer can be applied on any returned id
-            id_transformer = lambda x: x
+            id_transformer = dummy_transformer
         else:
             id_property, id_transformer = mapping
 
@@ -767,7 +773,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 if isinstance(value, list):
                     valid_ids = [item[id_property] for item in value]
                     return valid_ids
-        if valid_id := response_data.get(id_property):
+        if (valid_id := response_data.get(id_property)) is not None:
             return [valid_id]
         valid_ids = [item[id_property] for item in response_data["items"]]
         return valid_ids
@@ -808,7 +814,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 params=params,
                 headers=headers,
             )
-        content_schema = self.get_content_schema(body_spec)
+        content_schema = resolve_schema(self.get_content_schema(body_spec))
         dto_data = self.get_json_data_for_dto_class(
             schema=content_schema,
             dto_class=dto_class,
@@ -823,7 +829,8 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 fields=fields,
                 bases=(dto_class,),
             )
-            dto_instance = dto_class(**dto_data)  # type: ignore[call-arg]
+            dto_data = {get_safe_key(key): value for key, value in dto_data.items()}
+            dto_instance = dto_class(**dto_data)
         return RequestData(
             dto=dto_instance,
             dto_schema=content_schema,
@@ -844,17 +851,19 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
     @staticmethod
     def get_fields_from_dto_data(
         content_schema: Dict[str, Any], dto_data: Dict[str, Any]
-    ):
+    ) -> List[Union[str, Tuple[str, type], Tuple[str, type, Field[Any]]]]:
         """Get a dataclasses fields list based on the content_schema and dto_data."""
         fields: List[Union[str, Tuple[str, type], Tuple[str, type, Field[Any]]]] = []
         for key, value in dto_data.items():
             required_properties = content_schema.get("required", [])
+            safe_key = get_safe_key(key)
+            metadata = {"original_property_name": key}
             if key in required_properties:
                 # The fields list is used to create a dataclass, so non-default fields
                 # must go before fields with a default
-                fields.insert(0, ((key, type(value))))
+                fields.insert(0, (safe_key, type(value), field(metadata=metadata)))
             else:
-                fields.append((key, type(value), field(default=None)))  # type: ignore[arg-type]
+                fields.append((safe_key, type(value), field(default=None, metadata=metadata)))  # type: ignore[arg-type]
         return fields
 
     def get_request_parameters(
@@ -880,8 +889,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 f"Content types definded in the spec are '{content_types}'."
             )
         content_schema = body_spec["content"]["application/json"]["schema"]
-        resolved_schema: Dict[str, Any] = resolve_schema(content_schema)
-        return resolved_schema
+        return resolve_schema(content_schema)
 
     def get_parametrized_endpoint(self, endpoint: str) -> str:
         """
@@ -935,8 +943,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         value: Any = None
         for parameter in parameters:
             parameter_name = parameter["name"]
-            parameter_schema = parameter["schema"]
-            parameter_schema = resolve_schema(parameter_schema)
+            parameter_schema = resolve_schema(parameter["schema"])
             relations = [
                 r for r in parameter_relations if r.property_name == parameter_name
             ]
@@ -976,7 +983,9 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             # values should be empty or contain 1 list of allowed values
             return values_list.pop() if values_list else []
 
-        def get_dependent_id(property_name: str, operation_id: str) -> Optional[str]:
+        def get_dependent_id(
+            property_name: str, operation_id: str
+        ) -> Optional[Union[str, int, float]]:
             relations = dto_class.get_relations()
             # multiple get paths are possible based on the operation being performed
             id_get_paths = [
@@ -1007,10 +1016,13 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         json_data: Dict[str, Any] = {}
 
         for property_name in schema.get("properties", []):
-            value_schema = schema["properties"][property_name]
-            value_schema = resolve_schema(value_schema)
-            property_type = value_schema["type"]
-            if value_schema.get("readOnly", False):
+            properties_schema = schema["properties"][property_name]
+
+            property_type = properties_schema.get("type")
+            if not property_type:
+                selected_type_schema = choice(properties_schema["types"])
+                property_type = selected_type_schema["type"]
+            if properties_schema.get("readOnly", False):
                 continue
             if constrained_values := get_constrained_values(property_name):
                 # do not add properties that are configured to be ignored
@@ -1018,14 +1030,16 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                     continue
                 json_data[property_name] = choice(constrained_values)
                 continue
-            if dependent_id := get_dependent_id(
-                property_name=property_name, operation_id=operation_id
-            ):
+            if (
+                dependent_id := get_dependent_id(
+                    property_name=property_name, operation_id=operation_id
+                )
+            ) is not None:
                 json_data[property_name] = dependent_id
                 continue
             if property_type == "object":
                 object_data = self.get_json_data_for_dto_class(
-                    schema=value_schema,
+                    schema=properties_schema,
                     dto_class=DefaultDto,
                     operation_id="",
                 )
@@ -1033,13 +1047,13 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 continue
             if property_type == "array":
                 array_data = self.get_json_data_for_dto_class(
-                    schema=value_schema["items"],
+                    schema=properties_schema["items"],
                     dto_class=DefaultDto,
                     operation_id=operation_id,
                 )
                 json_data[property_name] = [array_data]
                 continue
-            json_data[property_name] = value_utils.get_valid_value(value_schema)
+            json_data[property_name] = value_utils.get_valid_value(properties_schema)
         return json_data
 
     @keyword
@@ -1065,7 +1079,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         raise ValueError(f"{parameterized_endpoint} could not be invalidated.")
 
     @keyword
-    def get_parameterized_endpoint_from_url(self, url: str):
+    def get_parameterized_endpoint_from_url(self, url: str) -> str:
         """
         Return the endpoint as found in the `paths` section based on the given `url`.
         """
@@ -1115,7 +1129,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             )
         elif isinstance(resource_relation, IdReference):
             run_keyword("ensure_in_use", url, resource_relation)
-            json_data = asdict(request_data.dto)
+            json_data = request_data.dto.as_dict()
         else:
             json_data = request_data.dto.get_invalidated_data(
                 schema=request_data.dto_schema,
@@ -1251,8 +1265,9 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             else:
                 valid_value = headers[parameter_to_invalidate]
 
+            value_schema = resolve_schema(parameter_data["schema"])
             invalid_value = value_utils.get_invalid_value(
-                value_schema=parameter_data["schema"],
+                value_schema=value_schema,
                 current_value=valid_value,
                 values_from_constraint=values_from_constraint,
             )
@@ -1272,7 +1287,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         headers: Dict[str, str],
         parameter_data: Dict[str, Any],
         values_from_constraint: List[Any],
-    ):
+    ) -> Tuple[Dict[str, Any], Dict[str, str]]:
         """
         Returns the params, headers tuple with parameter_to_invalidate with a valid
         value to params or headers if not originally present.
@@ -1284,7 +1299,8 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             if values_from_constraint:
                 valid_value = choice(values_from_constraint)
             else:
-                valid_value = value_utils.get_valid_value(parameter_data["schema"])
+                parameter_schema = resolve_schema(parameter_data["schema"])
+                valid_value = value_utils.get_valid_value(parameter_schema)
             if (
                 parameter_data["in"] == "query"
                 and parameter_to_invalidate not in params.keys()
@@ -1320,7 +1336,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         request_data = self.get_request_data(
             method="post", endpoint=resource_relation.post_path
         )
-        json_data = asdict(request_data.dto)
+        json_data = request_data.dto.as_dict()
         json_data[resource_relation.property_name] = resource_id
         post_url: str = run_keyword(
             "get_valid_url",
@@ -1351,7 +1367,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         `conflict_status_code`.
         """
         method = method.lower()
-        json_data = asdict(dto)
+        json_data = dto.as_dict()
         unique_property_value_constraints = [
             r
             for r in dto.get_relations()
@@ -1367,7 +1383,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                 # so a valid POST dto must be constructed
                 endpoint = post_url.replace(self.base_url, "")
                 request_data = self.get_request_data(endpoint=endpoint, method="post")
-                post_json = asdict(request_data.dto)
+                post_json = request_data.dto.as_dict()
                 for key in post_json.keys():
                     if key in json_data:
                         post_json[key] = json_data.get(key)
