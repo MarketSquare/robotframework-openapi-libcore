@@ -1,12 +1,12 @@
-# pylint: disable="missing-class-docstring", "missing-function-docstring"
+# pylint: disable="missing-class-docstring", "missing-module-docstring", "missing-function-docstring"
 import datetime
 from enum import Enum
 from sys import float_info
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 from uuid import uuid4
 
 from fastapi import FastAPI, Header, HTTPException, Path, Query, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 API_KEY = "OpenApiLibCore"
 API_KEY_NAME = "api_key"
@@ -32,11 +32,11 @@ class EnergyLabel(str, Enum):
 
 
 class WeekDay(str, Enum):
-    Monday = "Monday"
-    Tuesday = "Tuesday"
-    Wednesday = "Wednesday"
-    Thursday = "Thursday"
-    Friday = "Friday"
+    MONDAY = "Monday"
+    TUESDAY = "Tuesday"
+    WEDNESDAY = "Wednesday"
+    THURSDAY = "Thursday"
+    FRIDAY = "Friday"
 
 
 class Wing(str, Enum):
@@ -51,7 +51,9 @@ class Message(BaseModel):
 
 
 class Detail(BaseModel):
-    detail: str
+    model_config = ConfigDict(populate_by_name=True)
+
+    detail: str = Field(alias="99")
 
 
 class Event(BaseModel):
@@ -61,7 +63,7 @@ class Event(BaseModel):
 
 class WageGroup(BaseModel):
     wagegroup_id: str
-    hourly_rate: float
+    hourly_rate: Union[float, int] = Field(alias="hourly-rate")
     overtime_percentage: Optional[int] = DEPRECATED
 
 
@@ -133,7 +135,7 @@ def get_message(
 # deliberate trailing /
 @app.get("/events/", status_code=200, response_model=List[Event])
 def get_events(
-    search_strings: Optional[List[str]] = Query(None),
+    search_strings: Optional[List[str]] = Query(default=[]),
 ) -> List[Event]:
     if search_strings:
         result: List[Event] = []
@@ -159,13 +161,13 @@ def post_event(event: Event) -> Event:
 def get_energy_label(
     zipcode: str = Path(..., min_length=6, max_length=6),
     home_number: int = Path(..., ge=1),
-    extension: Optional[str] = Query(None, min_length=1, max_length=99),
+    extension: Optional[str] = Query(" ", min_length=1, max_length=9),
 ) -> Message:
     if not (labels_for_zipcode := ENERGY_LABELS.get(zipcode)):
         return Message(message=EnergyLabel.X)
     if not (labels_for_home_number := labels_for_zipcode.get(home_number)):
         return Message(message=EnergyLabel.X)
-    extension = "" if extension is None else extension
+    extension = "" if extension is None else extension.strip()
     return Message(message=labels_for_home_number.get(extension, EnergyLabel.X))
 
 
@@ -176,7 +178,7 @@ def get_energy_label(
     responses={418: {"model": Detail}, 422: {"model": Detail}},
 )
 def post_wagegroup(wagegroup: WageGroup) -> WageGroup:
-    if wagegroup.wagegroup_id in WAGE_GROUPS.keys():
+    if wagegroup.wagegroup_id in WAGE_GROUPS:
         raise HTTPException(status_code=418, detail="Wage group already exists.")
     if not (0.99 - DELTA) < (wagegroup.hourly_rate % 1) < (0.99 + DELTA):
         raise HTTPException(
@@ -199,7 +201,7 @@ def post_wagegroup(wagegroup: WageGroup) -> WageGroup:
     responses={404: {"model": Detail}},
 )
 def get_wagegroup(wagegroup_id: str) -> WageGroup:
-    if wagegroup_id not in WAGE_GROUPS.keys():
+    if wagegroup_id not in WAGE_GROUPS:
         raise HTTPException(status_code=404, detail="Wage group not found")
     return WAGE_GROUPS[wagegroup_id]
 
@@ -211,9 +213,9 @@ def get_wagegroup(wagegroup_id: str) -> WageGroup:
     responses={404: {"model": Detail}, 418: {"model": Detail}, 422: {"model": Detail}},
 )
 def put_wagegroup(wagegroup_id: str, wagegroup: WageGroup) -> WageGroup:
-    if wagegroup_id not in WAGE_GROUPS.keys():
+    if wagegroup_id not in WAGE_GROUPS:
         raise HTTPException(status_code=404, detail="Wage group not found.")
-    if wagegroup.wagegroup_id in WAGE_GROUPS.keys():
+    if wagegroup.wagegroup_id in WAGE_GROUPS:
         raise HTTPException(status_code=418, detail="Wage group already exists.")
     if not (0.99 - DELTA) < (wagegroup.hourly_rate % 1) < (0.99 + DELTA):
         raise HTTPException(
@@ -236,7 +238,7 @@ def put_wagegroup(wagegroup_id: str, wagegroup: WageGroup) -> WageGroup:
     responses={404: {"model": Detail}, 406: {"model": Detail}},
 )
 def delete_wagegroup(wagegroup_id: str) -> None:
-    if wagegroup_id not in WAGE_GROUPS.keys():
+    if wagegroup_id not in WAGE_GROUPS:
         raise HTTPException(status_code=404, detail="Wage group not found.")
     used_by = [e for e in EMPLOYEES.values() if e.wagegroup_id == wagegroup_id]
     if used_by:
@@ -254,7 +256,7 @@ def delete_wagegroup(wagegroup_id: str) -> None:
     responses={404: {"model": Detail}},
 )
 def get_employees_in_wagegroup(wagegroup_id: str) -> List[EmployeeDetails]:
-    if wagegroup_id not in WAGE_GROUPS.keys():
+    if wagegroup_id not in WAGE_GROUPS:
         raise HTTPException(status_code=404, detail="Wage group not found.")
     return [e for e in EMPLOYEES.values() if e.wagegroup_id == wagegroup_id]
 
@@ -267,7 +269,7 @@ def get_employees_in_wagegroup(wagegroup_id: str) -> List[EmployeeDetails]:
 )
 def post_employee(employee: Employee) -> EmployeeDetails:
     wagegroup_id = employee.wagegroup_id
-    if wagegroup_id not in WAGE_GROUPS.keys():
+    if wagegroup_id not in WAGE_GROUPS:
         raise HTTPException(
             status_code=451, detail=f"Wage group with id {wagegroup_id} does not exist."
         )
@@ -280,7 +282,7 @@ def post_employee(employee: Employee) -> EmployeeDetails:
     new_employee = EmployeeDetails(
         identification=uuid4().hex,
         employee_number=next(EMPLOYEE_NUMBERS),
-        **employee.dict(),
+        **employee.model_dump(),
     )
     EMPLOYEES[new_employee.identification] = new_employee
     return new_employee
@@ -302,7 +304,7 @@ def get_employees() -> List[EmployeeDetails]:
     responses={404: {"model": Detail}},
 )
 def get_employee(employee_id: str) -> EmployeeDetails:
-    if employee_id not in EMPLOYEES.keys():
+    if employee_id not in EMPLOYEES:
         raise HTTPException(status_code=404, detail="Employee not found")
     return EMPLOYEES[employee_id]
 
@@ -314,11 +316,26 @@ def get_employee(employee_id: str) -> EmployeeDetails:
     responses={404: {"model": Detail}},
 )
 def patch_employee(employee_id: str, employee: EmployeeUpdate) -> EmployeeDetails:
-    if employee_id not in EMPLOYEES.keys():
+    if employee_id not in EMPLOYEES:
         raise HTTPException(status_code=404, detail="Employee not found")
     stored_employee_data = EMPLOYEES[employee_id]
-    employee_update_data = employee.dict(exclude_unset=True)
-    updated_employee = stored_employee_data.copy(update=employee_update_data)
+    employee_update_data = employee.model_dump(exclude_unset=True)
+
+    wagegroup_id = employee_update_data.get("wagegroup_id", None)
+    if wagegroup_id and wagegroup_id not in WAGE_GROUPS:
+        raise HTTPException(
+            status_code=451, detail=f"Wage group with id {wagegroup_id} does not exist."
+        )
+
+    today = datetime.date.today()
+    if date_of_birth := employee_update_data.get("date_of_birth", None):
+        employee_age = today - date_of_birth
+        if employee_age.days < 18 * 365:
+            raise HTTPException(
+                status_code=403, detail="An employee must be at least 18 years old."
+            )
+
+    updated_employee = stored_employee_data.model_copy(update=employee_update_data)
     EMPLOYEES[employee_id] = updated_employee
     return updated_employee
 
