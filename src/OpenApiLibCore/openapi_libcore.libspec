@@ -1,112 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<keywordspec name="OpenApiLibCore" type="LIBRARY" format="HTML" scope="SUITE" generated="2023-06-22T08:04:13+00:00" specversion="4" source="C:\GitHub\robotframework-openapi-libcore\src\OpenApiLibCore\openapi_libcore.py" lineno="379">
-<version>1.9.1</version>
+<keywordspec name="OpenApiLibCore" type="LIBRARY" format="HTML" scope="SUITE" generated="2023-07-28T12:13:11+00:00" specversion="5" source="C:\GitHub\robotframework-openapi-libcore\src\OpenApiLibCore\openapi_libcore.py" lineno="376">
+<version>1.10.0</version>
 <doc>&lt;p&gt;Main class providing the keywords and core logic to interact with an OpenAPI server.&lt;/p&gt;
 &lt;p&gt;Visit the &lt;a href="https://github.com/MarketSquare/robotframework-openapi-libcore"&gt;library page&lt;/a&gt; for an introduction.&lt;/p&gt;</doc>
 <tags>
 </tags>
 <inits>
-<init name="__init__" lineno="387">
+<init name="__init__" lineno="384">
 <arguments repr="source: str, origin: str = , base_path: str = , mappings_path: str | Path = , invalid_property_default_response: int = 422, default_id_property_name: str = id, faker_locale: str | List[str] | None = None, recursion_limit: int = 1, recursion_default: Any = {}, username: str = , password: str = , security_token: str = , auth: AuthBase | None = None, cert: str | Tuple[str, str] | None = None, verify_tls: bool | str | None = True, extra_headers: Dict[str, str] | None = None, cookies: Dict[str, str] | RequestsCookieJar | None = None, proxies: Dict[str, str] | None = None">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="source: str">
 <name>source</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="origin: str = ">
 <name>origin</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 <default/>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="base_path: str = ">
 <name>base_path</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 <default/>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="mappings_path: str | Path = ">
 <name>mappings_path</name>
-<type typedoc="string">str</type>
-<type typedoc="Path">Path</type>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
 <default/>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="invalid_property_default_response: int = 422">
 <name>invalid_property_default_response</name>
-<type typedoc="integer">int</type>
+<type name="int" typedoc="integer">int</type>
 <default>422</default>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="default_id_property_name: str = id">
 <name>default_id_property_name</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 <default>id</default>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="faker_locale: str | List[str] | None = None">
 <name>faker_locale</name>
-<type typedoc="string">str</type>
-<type typedoc="list">List[str]</type>
-<type typedoc="None">None</type>
+<type name="Union" union="true">str | List[str] | None<type name="str" typedoc="string">str</type><type name="List" typedoc="list">List[str]<type name="str" typedoc="string">str</type></type><type name="None" typedoc="None">None</type></type>
 <default>None</default>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="recursion_limit: int = 1">
 <name>recursion_limit</name>
-<type typedoc="integer">int</type>
+<type name="int" typedoc="integer">int</type>
 <default>1</default>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="recursion_default: Any = {}">
 <name>recursion_default</name>
-<type>Any</type>
+<type name="Any" typedoc="Any">Any</type>
 <default>{}</default>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="username: str = ">
 <name>username</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 <default/>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="password: str = ">
 <name>password</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 <default/>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="security_token: str = ">
 <name>security_token</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 <default/>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="auth: AuthBase | None = None">
 <name>auth</name>
-<type>AuthBase</type>
-<type typedoc="None">None</type>
+<type name="Union" union="true">AuthBase | None<type name="AuthBase">AuthBase</type><type name="None" typedoc="None">None</type></type>
 <default>None</default>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="cert: str | Tuple[str, str] | None = None">
 <name>cert</name>
-<type typedoc="string">str</type>
-<type typedoc="tuple">Tuple[str, str]</type>
-<type typedoc="None">None</type>
+<type name="Union" union="true">str | Tuple[str, str] | None<type name="str" typedoc="string">str</type><type name="Tuple" typedoc="tuple">Tuple[str, str]<type name="str" typedoc="string">str</type><type name="str" typedoc="string">str</type></type><type name="None" typedoc="None">None</type></type>
 <default>None</default>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="verify_tls: bool | str | None = True">
 <name>verify_tls</name>
-<type typedoc="boolean">bool</type>
-<type typedoc="string">str</type>
-<type typedoc="None">None</type>
+<type name="Union" union="true">bool | str | None<type name="bool" typedoc="boolean">bool</type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
 <default>True</default>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="extra_headers: Dict[str, str] | None = None">
 <name>extra_headers</name>
-<type typedoc="dictionary">Dict[str, str]</type>
-<type typedoc="None">None</type>
+<type name="Union" union="true">Dict[str, str] | None<type name="Dict" typedoc="dictionary">Dict[str, str]<type name="str" typedoc="string">str</type><type name="str" typedoc="string">str</type></type><type name="None" typedoc="None">None</type></type>
 <default>None</default>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="cookies: Dict[str, str] | RequestsCookieJar | None = None">
 <name>cookies</name>
-<type typedoc="dictionary">Dict[str, str]</type>
-<type typedoc="dictionary">RequestsCookieJar</type>
-<type typedoc="None">None</type>
+<type name="Union" union="true">Dict[str, str] | RequestsCookieJar | None<type name="Dict" typedoc="dictionary">Dict[str, str]<type name="str" typedoc="string">str</type><type name="str" typedoc="string">str</type></type><type name="RequestsCookieJar" typedoc="dictionary">RequestsCookieJar</type><type name="None" typedoc="None">None</type></type>
 <default>None</default>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="proxies: Dict[str, str] | None = None">
 <name>proxies</name>
-<type typedoc="dictionary">Dict[str, str]</type>
-<type typedoc="None">None</type>
+<type name="Union" union="true">Dict[str, str] | None<type name="Dict" typedoc="dictionary">Dict[str, str]<type name="str" typedoc="string">str</type><type name="str" typedoc="string">str</type></type><type name="None" typedoc="None">None</type></type>
 <default>None</default>
 </arg>
 </arguments>
@@ -156,37 +144,29 @@
 </init>
 </inits>
 <keywords>
-<kw name="Authorized Request" lineno="1397">
+<kw name="Authorized Request" lineno="1413">
 <arguments repr="url: str, method: str, params: Dict[str, Any] | None = None, headers: Dict[str, str] | None = None, json_data: Dict[str, Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None] | List[Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None] | str | int | float | bool | None = None">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="method: str">
 <name>method</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="params: Dict[str, Any] | None = None">
 <name>params</name>
-<type typedoc="dictionary">Dict[str, Any]</type>
-<type typedoc="None">None</type>
+<type name="Union" union="true">Dict[str, Any] | None<type name="Dict" typedoc="dictionary">Dict[str, Any]<type name="str" typedoc="string">str</type><type name="Any" typedoc="Any">Any</type></type><type name="None" typedoc="None">None</type></type>
 <default>None</default>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="headers: Dict[str, str] | None = None">
 <name>headers</name>
-<type typedoc="dictionary">Dict[str, str]</type>
-<type typedoc="None">None</type>
+<type name="Union" union="true">Dict[str, str] | None<type name="Dict" typedoc="dictionary">Dict[str, str]<type name="str" typedoc="string">str</type><type name="str" typedoc="string">str</type></type><type name="None" typedoc="None">None</type></type>
 <default>None</default>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="json_data: Dict[str, Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None] | List[Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None] | str | int | float | bool | None = None">
 <name>json_data</name>
-<type typedoc="dictionary">Dict[str, Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None]</type>
-<type typedoc="list">List[Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None]</type>
-<type typedoc="string">str</type>
-<type typedoc="integer">int</type>
-<type typedoc="float">float</type>
-<type typedoc="boolean">bool</type>
-<type typedoc="None">None</type>
+<type name="Union" union="true">Dict[str, Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None] | List[Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None] | str | int | float | bool | None<type name="Dict" typedoc="dictionary">Dict[str, Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None]<type name="str" typedoc="string">str</type><type name="Union" union="true">Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None<type name="Dict" typedoc="dictionary">Dict[str, ForwardRef('JSON')]<type name="str" typedoc="string">str</type><type name="ForwardRef('JSON')">ForwardRef('JSON')</type></type><type name="List" typedoc="list">List[ForwardRef('JSON')]<type name="ForwardRef('JSON')">ForwardRef('JSON')</type></type><type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type></type><type name="List" typedoc="list">List[Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None]<type name="Union" union="true">Dict[str, ForwardRef('JSON')] | List[ForwardRef('JSON')] | str | int | float | bool | None<type name="Dict" typedoc="dictionary">Dict[str, ForwardRef('JSON')]<type name="str" typedoc="string">str</type><type name="ForwardRef('JSON')">ForwardRef('JSON')</type></type><type name="List" typedoc="list">List[ForwardRef('JSON')]<type name="ForwardRef('JSON')">ForwardRef('JSON')</type></type><type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type></type><type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
 <default>None</default>
 </arg>
 </arguments>
@@ -194,139 +174,138 @@
 &lt;p&gt;&amp;gt; Note: provided username / password or auth objects take precedence over token based security&lt;/p&gt;</doc>
 <shortdoc>Perform a request using the security token or authentication set in the library.</shortdoc>
 </kw>
-<kw name="Ensure In Use" lineno="1301">
+<kw name="Ensure In Use" lineno="1317">
 <arguments repr="url: str, resource_relation: IdReference">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="resource_relation: IdReference">
 <name>resource_relation</name>
-<type>IdReference</type>
+<type name="IdReference">IdReference</type>
 </arg>
 </arguments>
 <doc>&lt;p&gt;Ensure that the (right-most) &lt;span class="name"&gt;id&lt;/span&gt; of the resource referenced by the &lt;span class="name"&gt;url&lt;/span&gt; is used by the resource defined by the &lt;span class="name"&gt;resource_relation&lt;/span&gt;.&lt;/p&gt;</doc>
 <shortdoc>Ensure that the (right-most) `id` of the resource referenced by the `url` is used by the resource defined by the `resource_relation`.</shortdoc>
 </kw>
-<kw name="Get Ids From Url" lineno="736">
+<kw name="Get Ids From Url" lineno="742">
 <arguments repr="url: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 </arguments>
 <doc>&lt;p&gt;Perform a GET request on the &lt;span class="name"&gt;url&lt;/span&gt; and return the list of resource &lt;span class="name"&gt;ids&lt;/span&gt; from the response.&lt;/p&gt;</doc>
 <shortdoc>Perform a GET request on the `url` and return the list of resource `ids` from the response.</shortdoc>
 </kw>
-<kw name="Get Invalid Json Data" lineno="1080">
+<kw name="Get Invalid Json Data" lineno="1094">
 <arguments repr="url: str, method: str, status_code: int, request_data: RequestData">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="method: str">
 <name>method</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="status_code: int">
 <name>status_code</name>
-<type typedoc="integer">int</type>
+<type name="int" typedoc="integer">int</type>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="request_data: RequestData">
 <name>request_data</name>
-<type>RequestData</type>
+<type name="RequestData">RequestData</type>
 </arg>
 </arguments>
 <doc>&lt;p&gt;Return &lt;span class="name"&gt;json_data&lt;/span&gt; based on the &lt;span class="name"&gt;dto&lt;/span&gt; on the &lt;span class="name"&gt;request_data&lt;/span&gt; that will cause the provided &lt;span class="name"&gt;status_code&lt;/span&gt; for the &lt;span class="name"&gt;method&lt;/span&gt; operation on the &lt;span class="name"&gt;url&lt;/span&gt;.&lt;/p&gt;
 &lt;p&gt;&amp;gt; Note: applicable UniquePropertyValueConstraint and IdReference Relations are considered before changes to &lt;span class="name"&gt;json_data&lt;/span&gt; are made.&lt;/p&gt;</doc>
 <shortdoc>Return `json_data` based on the `dto` on the `request_data` that will cause the provided `status_code` for the `method` operation on the `url`.</shortdoc>
 </kw>
-<kw name="Get Invalidated Parameters" lineno="1128">
+<kw name="Get Invalidated Parameters" lineno="1142">
 <arguments repr="status_code: int, request_data: RequestData">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="status_code: int">
 <name>status_code</name>
-<type typedoc="integer">int</type>
+<type name="int" typedoc="integer">int</type>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="request_data: RequestData">
 <name>request_data</name>
-<type>RequestData</type>
+<type name="RequestData">RequestData</type>
 </arg>
 </arguments>
 <doc>&lt;p&gt;Returns a version of &lt;span class="name"&gt;params, headers&lt;/span&gt; as present on &lt;span class="name"&gt;request_data&lt;/span&gt; that has been modified to cause the provided &lt;span class="name"&gt;status_code&lt;/span&gt;.&lt;/p&gt;</doc>
 <shortdoc>Returns a version of `params, headers` as present on `request_data` that has been modified to cause the provided `status_code`.</shortdoc>
 </kw>
-<kw name="Get Invalidated Url" lineno="1046">
+<kw name="Get Invalidated Url" lineno="1060">
 <arguments repr="valid_url: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="valid_url: str">
 <name>valid_url</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 </arguments>
 <doc>&lt;p&gt;Return an url with all the path parameters in the &lt;span class="name"&gt;valid_url&lt;/span&gt; replaced by a random UUID.&lt;/p&gt;
 &lt;p&gt;Raises ValueError if the valid_url cannot be invalidated.&lt;/p&gt;</doc>
 <shortdoc>Return an url with all the path parameters in the `valid_url` replaced by a random UUID.</shortdoc>
 </kw>
-<kw name="Get Json Data For Dto Class" lineno="956">
+<kw name="Get Json Data For Dto Class" lineno="963">
 <arguments repr="schema: Dict[str, Any], dto_class: Dto | Type[Dto], operation_id: str = ">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="schema: Dict[str, Any]">
 <name>schema</name>
-<type typedoc="dictionary">Dict[str, Any]</type>
+<type name="Dict" typedoc="dictionary">Dict[str, Any]<type name="str" typedoc="string">str</type><type name="Any" typedoc="Any">Any</type></type>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="dto_class: Dto | Type[Dto]">
 <name>dto_class</name>
-<type>Dto</type>
-<type>Type[Dto]</type>
+<type name="Union" union="true">Dto | Type[Dto]<type name="Dto">Dto</type><type name="Type">Type[Dto]<type name="Dto">Dto</type></type></type>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="false" repr="operation_id: str = ">
 <name>operation_id</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 <default/>
 </arg>
 </arguments>
 <doc>&lt;p&gt;Generate a valid (json-compatible) dict for all the &lt;span class="name"&gt;dto_class&lt;/span&gt; properties.&lt;/p&gt;</doc>
 <shortdoc>Generate a valid (json-compatible) dict for all the `dto_class` properties.</shortdoc>
 </kw>
-<kw name="Get Json Data With Conflict" lineno="1345">
+<kw name="Get Json Data With Conflict" lineno="1361">
 <arguments repr="url: str, method: str, dto: Dto, conflict_status_code: int">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="method: str">
 <name>method</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="dto: Dto">
 <name>dto</name>
-<type>Dto</type>
+<type name="Dto">Dto</type>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="conflict_status_code: int">
 <name>conflict_status_code</name>
-<type typedoc="integer">int</type>
+<type name="int" typedoc="integer">int</type>
 </arg>
 </arguments>
 <doc>&lt;p&gt;Return &lt;span class="name"&gt;json_data&lt;/span&gt; based on the &lt;span class="name"&gt;UniquePropertyValueConstraint&lt;/span&gt; that must be returned by the &lt;span class="name"&gt;get_relations&lt;/span&gt; implementation on the &lt;span class="name"&gt;dto&lt;/span&gt; for the given &lt;span class="name"&gt;conflict_status_code&lt;/span&gt;.&lt;/p&gt;</doc>
 <shortdoc>Return `json_data` based on the `UniquePropertyValueConstraint` that must be returned by the `get_relations` implementation on the `dto` for the given `conflict_status_code`.</shortdoc>
 </kw>
-<kw name="Get Parameterized Endpoint From Url" lineno="1068">
+<kw name="Get Parameterized Endpoint From Url" lineno="1082">
 <arguments repr="url: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
 <name>url</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 </arguments>
 <doc>&lt;p&gt;Return the endpoint as found in the &lt;span class="name"&gt;paths&lt;/span&gt; section based on the given &lt;span class="name"&gt;url&lt;/span&gt;.&lt;/p&gt;</doc>
 <shortdoc>Return the endpoint as found in the `paths` section based on the given `url`.</shortdoc>
 </kw>
-<kw name="Get Request Data" lineno="776">
+<kw name="Get Request Data" lineno="782">
 <arguments repr="endpoint: str, method: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="endpoint: str">
 <name>endpoint</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="method: str">
 <name>method</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 </arguments>
 <doc>&lt;p&gt;Return an object with valid request data for body, headers and query params.&lt;/p&gt;</doc>
@@ -336,11 +315,11 @@
 <arguments repr="endpoint: str, method: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="endpoint: str">
 <name>endpoint</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="method: str">
 <name>method</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 </arguments>
 <doc>&lt;p&gt;Support keyword that returns the &lt;span class="name"&gt;id&lt;/span&gt; for an existing resource at &lt;span class="name"&gt;endpoint&lt;/span&gt;.&lt;/p&gt;
@@ -351,11 +330,11 @@
 <arguments repr="endpoint: str, method: str">
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="endpoint: str">
 <name>endpoint</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 <arg kind="POSITIONAL_OR_NAMED" required="true" repr="method: str">
 <name>method</name>
-<type typedoc="string">str</type>
+<type name="str" typedoc="string">str</type>
 </arg>
 </arguments>
 <doc>&lt;p&gt;This keyword returns a valid url for the given &lt;span class="name"&gt;endpoint&lt;/span&gt; and &lt;span class="name"&gt;method&lt;/span&gt;.&lt;/p&gt;
@@ -367,6 +346,17 @@
 <datatypes>
 </datatypes>
 <typedocs>
+<type name="Any" type="Standard">
+<doc>&lt;p&gt;Any value is accepted. No conversion is done.&lt;/p&gt;</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Authorized Request</usage>
+<usage>Get Json Data For Dto Class</usage>
+</usages>
+</type>
 <type name="boolean" type="Standard">
 <doc>&lt;p&gt;Strings &lt;code&gt;TRUE&lt;/code&gt;, &lt;code&gt;YES&lt;/code&gt;, &lt;code&gt;ON&lt;/code&gt; and &lt;code&gt;1&lt;/code&gt; are converted to Boolean &lt;code&gt;True&lt;/code&gt;, the empty string as well as strings &lt;code&gt;FALSE&lt;/code&gt;, &lt;code&gt;NO&lt;/code&gt;, &lt;code&gt;OFF&lt;/code&gt; and &lt;code&gt;0&lt;/code&gt; are converted to Boolean &lt;code&gt;False&lt;/code&gt;, and the string &lt;code&gt;NONE&lt;/code&gt; is converted to the Python &lt;code&gt;None&lt;/code&gt; object. Other strings and other accepted values are passed as-is, allowing keywords to handle them specially if needed. All string comparisons are case-insensitive.&lt;/p&gt;
 &lt;p&gt;Examples: &lt;code&gt;TRUE&lt;/code&gt; (converted to &lt;code&gt;True&lt;/code&gt;), &lt;code&gt;off&lt;/code&gt; (converted to &lt;code&gt;False&lt;/code&gt;), &lt;code&gt;example&lt;/code&gt; (used as-is)&lt;/p&gt;</doc>
