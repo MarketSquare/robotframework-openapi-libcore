@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Union
 from uuid import uuid4
 
 from fastapi import FastAPI, Header, HTTPException, Path, Query, Response
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 API_KEY = "OpenApiLibCore"
 API_KEY_NAME = "api_key"
@@ -51,12 +51,10 @@ class Message(BaseModel):
 
 
 class Detail(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
-    detail: str = Field(alias="99")
+    detail: str
 
 
-class Event(BaseModel):
+class Event(BaseModel, extra="forbid"):
     message: Message
     details: List[Detail]
 
