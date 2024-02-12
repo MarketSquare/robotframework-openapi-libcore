@@ -1,6 +1,6 @@
 [tool.poetry]
 name="robotframework-openapi-libcore"
-version = "1.10.1"
+version = "1.11.0"
 description = "A Robot Framework library to facilitate library development for OpenAPI / Swagger APIs."
 license = "Apache-2.0"
 authors = ["Robin Mackaij <r.a.mackaij@gmail.com>"]
@@ -25,10 +25,10 @@ include = ["*.libspec"]
 python = "^3.8"
 robotframework = ">=4"
 requests = "^2.27"
-prance = {version = "^0.22", extras = ["CLI"]}
+prance = {version = "^23.6", extras = ["CLI"]}
 Faker = ">=11"
 rstr = "^3"
-openapi-core = "^0.17.0"
+openapi-core = "^0.18.0"
 
 [tool.poetry.group.dev.dependencies]
 fastapi = ">=0.95.0"
@@ -100,8 +100,10 @@ py_version=38
 
 [tool.ruff]
 line-length = 120
-select = ["E", "F", "PL"]
 src = ["src/OpenApiDriver"]
+
+[tool.ruff.lint]
+select = ["E", "F", "PL"]
 
 [tool.pylint.'MESSAGES CONTROL']
 disable = ["logging-fstring-interpolation", "missing-class-docstring"]

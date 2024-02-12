@@ -3,6 +3,7 @@ Module holding the (base) classes that can be used by the user of the OpenApiLib
 to implement custom mappings for dependencies between resources in the API under
 test and constraints / restrictions on properties of the resources.
 """
+
 from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, fields

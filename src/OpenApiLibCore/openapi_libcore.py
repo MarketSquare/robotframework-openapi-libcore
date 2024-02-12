@@ -130,12 +130,11 @@ from random import choice
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 from uuid import uuid4
 
-from openapi_core import Spec, openapi_response_validator
+from openapi_core import Spec, validate_response
 from openapi_core.contrib.requests import (
     RequestsOpenAPIRequest,
     RequestsOpenAPIResponse,
 )
-from openapi_core.unmarshalling.response.datatypes import ResponseUnmarshalResult
 from prance import ResolvingParser, ValidationError
 from prance.util.url import ResolutionError
 from requests import Response, Session
@@ -521,7 +520,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                         "Source was loaded, but no specification was present after parsing."
                     )
 
-                validation_spec = Spec.create(parser.specification)
+                validation_spec = Spec.from_dict(parser.specification)
                 PARSER_CACHE[source] = (parser, validation_spec)
 
             self._openapi_spec: Dict[str, Any] = parser.specification
@@ -585,12 +584,12 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
 
     def validate_response_vs_spec(
         self, request: RequestsOpenAPIRequest, response: RequestsOpenAPIResponse
-    ) -> ResponseUnmarshalResult:
+    ) -> None:
         """
         Validate the reponse for a given request against the OpenAPI Spec that is
         loaded during library initialization.
         """
-        return openapi_response_validator.validate(
+        _ = validate_response(
             spec=self.validation_spec,
             request=request,
             response=response,
@@ -851,9 +850,13 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
     @staticmethod
     def get_fields_from_dto_data(
         content_schema: Dict[str, Any], dto_data: Dict[str, Any]
-    ) -> List[Union[str, Tuple[str, Type[Any]], Tuple[str, Type[Any], Field[Any]]]]:
+    ):
+        # FIXME: annotation is not Pyhon 3.8-compatible
+        # ) -> List[Union[str, Tuple[str, Type[Any]], Tuple[str, Type[Any], Field[Any]]]]:
         """Get a dataclasses fields list based on the content_schema and dto_data."""
-        fields: List[Union[str, Tuple[str, Type[Any]], Tuple[str, Type[Any], Field[Any]]]] = []
+        fields: List[
+            Union[str, Tuple[str, Type[Any]], Tuple[str, Type[Any], Field[Any]]]
+        ] = []
         for key, value in dto_data.items():
             required_properties = content_schema.get("required", [])
             safe_key = get_safe_key(key)

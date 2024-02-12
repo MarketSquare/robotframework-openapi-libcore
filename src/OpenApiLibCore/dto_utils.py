@@ -1,4 +1,5 @@
 """Module for helper methods and classes used by the openapi_executors module."""
+
 from dataclasses import dataclass
 from importlib import import_module
 from logging import getLogger
@@ -29,9 +30,9 @@ class get_dto_class:
     def __init__(self, mappings_module_name: str) -> None:
         try:
             mappings_module = import_module(mappings_module_name)
-            self.dto_mapping: Dict[
-                Tuple[str, str], Type[Dto]
-            ] = mappings_module.DTO_MAPPING
+            self.dto_mapping: Dict[Tuple[str, str], Type[Dto]] = (
+                mappings_module.DTO_MAPPING
+            )
         except (ImportError, AttributeError, ValueError) as exception:
             if mappings_module_name != "no mapping":
                 logger.error(f"DTO_MAPPING was not imported: {exception}")
