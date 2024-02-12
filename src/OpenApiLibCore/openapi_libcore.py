@@ -850,9 +850,13 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
     @staticmethod
     def get_fields_from_dto_data(
         content_schema: Dict[str, Any], dto_data: Dict[str, Any]
-    ) -> List[Union[str, Tuple[str, Type[Any]], Tuple[str, Type[Any], Field[Any]]]]:
+    ):
+        # FIXME: annotation is not Pyhon 3.8-compatible
+        # ) -> List[Union[str, Tuple[str, Type[Any]], Tuple[str, Type[Any], Field[Any]]]]:
         """Get a dataclasses fields list based on the content_schema and dto_data."""
-        fields: List[Union[str, Tuple[str, Type[Any]], Tuple[str, Type[Any], Field[Any]]]] = []
+        fields: List[
+            Union[str, Tuple[str, Type[Any]], Tuple[str, Type[Any], Field[Any]]]
+        ] = []
         for key, value in dto_data.items():
             required_properties = content_schema.get("required", [])
             safe_key = get_safe_key(key)
