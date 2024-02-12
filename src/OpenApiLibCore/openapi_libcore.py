@@ -130,12 +130,11 @@ from random import choice
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 from uuid import uuid4
 
-from openapi_core import Spec, openapi_response_validator
+from openapi_core import Spec, validate_response
 from openapi_core.contrib.requests import (
     RequestsOpenAPIRequest,
     RequestsOpenAPIResponse,
 )
-from openapi_core.unmarshalling.response.datatypes import ResponseUnmarshalResult
 from prance import ResolvingParser, ValidationError
 from prance.util.url import ResolutionError
 from requests import Response, Session
@@ -521,7 +520,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                         "Source was loaded, but no specification was present after parsing."
                     )
 
-                validation_spec = Spec.create(parser.specification)
+                validation_spec = Spec.from_dict(parser.specification)
                 PARSER_CACHE[source] = (parser, validation_spec)
 
             self._openapi_spec: Dict[str, Any] = parser.specification
@@ -585,12 +584,12 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
 
     def validate_response_vs_spec(
         self, request: RequestsOpenAPIRequest, response: RequestsOpenAPIResponse
-    ) -> ResponseUnmarshalResult:
+    ) -> None:
         """
         Validate the reponse for a given request against the OpenAPI Spec that is
         loaded during library initialization.
         """
-        return openapi_response_validator.validate(
+        _ = validate_response(
             spec=self.validation_spec,
             request=request,
             response=response,
