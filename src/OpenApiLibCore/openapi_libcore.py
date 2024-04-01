@@ -1420,6 +1420,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         params: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
         json_data: Optional[JSON] = None,
+        file_data: Optional[Dict[str, str]] = None,
     ) -> Response:
         """
         Perform a request using the security token or authentication set in the library.
@@ -1435,12 +1436,14 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             security_header = {"Authorization": self.security_token}
             headers.update(security_header)
         headers = {k: str(v) for k, v in headers.items()}
+        ###files = {n: open(p,"r") for n, p in file_data.items()}
         response = self.session.request(
             url=url,
             method=method,
             params=params,
             headers=headers,
             json=json_data,
+            file=file_data,
             cookies=self.cookies,
             auth=self.auth,
             proxies=self.proxies,
