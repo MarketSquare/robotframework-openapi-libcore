@@ -513,7 +513,6 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
                     backend="openapi-spec-validator",
                     recursion_limit=recursion_limit,
                     recursion_limit_handler=recursion_limit_handler,
-                    verify = verify_tls,
                 )
 
                 if parser.specification is None:  # pragma: no cover
@@ -1452,5 +1451,6 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             verify=self.verify,
             cert=self.cert,
         )
+        logger.debug(f"Request Body: {response.request.body}")
         logger.debug(f"Response text: {response.text}")
         return response
