@@ -1451,6 +1451,6 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             verify=self.verify,
             cert=self.cert,
         )
-        logger.debug(f"Request Body: {response.request.body}")
+        
         logger.debug(f"Response text: {response.text}")
         return response
