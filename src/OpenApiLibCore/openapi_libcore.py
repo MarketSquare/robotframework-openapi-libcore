@@ -1422,7 +1422,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         params: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
         json_data: Optional[JSON] = None,
-        file_data: Optional[Dict[str, Dict[str, str]]] = None,
+        file_data: Optional[Dict[str, str]] = None,
     ) -> Response:
         """
         Perform a request using the security token or authentication set in the library.
