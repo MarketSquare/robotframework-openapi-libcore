@@ -1438,7 +1438,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             security_header = {"Authorization": self.security_token}
             headers.update(security_header)
         headers = {k: str(v) for k, v in headers.items()}
-        files = [(api_param, (name, open(file_path,"rb"), mimetypes.guess_type(file_path))) for api_param, fd in file_data.items() for name, file_path in fd.items()]
+        files = [(api_param, (name, open(file_path,"rb"), mimetypes.guess_type(file_path)[0])) for api_param, fd in file_data.items() for name, file_path in fd.items()]
         response = self.session.request(
             url=url,
             method=method,
