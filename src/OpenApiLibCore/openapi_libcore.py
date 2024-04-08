@@ -130,7 +130,7 @@ from random import choice
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 from uuid import uuid4
 
-###from mimetypes import MimeTypes
+from mimetypes import MimeTypes
 
 from openapi_core import Spec, validate_response
 from openapi_core.contrib.requests import (
@@ -1422,7 +1422,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         params: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
         json_data: Optional[JSON] = None,
-        file_data: Optional[Dict[str, str]] = None,
+        file_data: Optional[Dict[str, Dict[str, str]]] = None,
     ) -> Response:
         """
         Perform a request using the security token or authentication set in the library.
@@ -1438,7 +1438,7 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
             security_header = {"Authorization": self.security_token}
             headers.update(security_header)
         headers = {k: str(v) for k, v in headers.items()}
-        files = [(api_param, (name, open(file_path,"rb")) for name, file_path in fd.items() ) for api_param, fd in file_data.items()]
+        files = [(api_param, (name, open(file_path,"rb"), MimeTypes.guess_type(file_path))) for api_param, fd in file_data.items() for name, file_path in fd.items()]
         response = self.session.request(
             url=url,
             method=method,
