@@ -132,4 +132,6 @@ tests/logs
 
 # PowerShell utility scripts
 _*.ps1
+
+# Misc testing files
 tests/files/openFiles.py
