@@ -1456,3 +1456,10 @@ class OpenApiLibCore:  # pylint: disable=too-many-instance-attributes
         
         logger.debug(f"Response text: {response.text}")
         return response
+
+    @keyword
+    def update_security_token(self, security_token: str) -> None:
+        """ 
+        Updates the security token attribute.
+        """
+        self.security_token=security_token
