@@ -3,6 +3,9 @@
 
 # OpenApiLibCore for Robot Framework
 
+> OpenApiLibCore has moved!
+Please head over to https://github.com/MarketSquare/robotframework-openapitools for the latest version!
+
 The OpenApiLibCore library is a utility library that is meant to simplify creation
 of other Robot Framework libraries for API testing based on the information in
 an OpenAPI document (also known as Swagger document).
